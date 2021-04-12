@@ -14,6 +14,7 @@ type Rectangle struct {
 }
 
 // Area returns the area of the rectangle.
+// 实现 Shape 接口的方法
 func (r Rectangle) Area() float64 {
 	return r.Width * r.Height
 }

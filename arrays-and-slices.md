@@ -2,8 +2,7 @@
 
 **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/arrays)**
 
-Arrays allow you to store multiple elements of the same type in a variable in
-a particular order.
+Arrays 允许你用一个变量以特定顺序存储同一个类型的多个元素。
 
 When you have an array, it is very common to have to iterate over them. So let's
 use [our new-found knowledge of `for`](iteration.md) to make a `Sum` function. `Sum` will
