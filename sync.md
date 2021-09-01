@@ -2,15 +2,14 @@
 
 **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/sync)**
 
-We want to make a counter which is safe to use concurrently.
+我们想在并发的情况下安全的使用 counter.
 
-We'll start with an unsafe counter and verify its behaviour works in a single-threaded environment.
+我们将从一个不安全的计数器开始，并验证它是否在单线程环境中能正常工作。
 
-Then we'll exercise it's unsafeness with multiple goroutines trying to use it via a test and fix it.
+然后，我们将通过多个 goroutine 来重现它的不安全性，尝试通过测试来使用它并修复它。
 
 ## Write the test first
-
-We want our API to give us a method to increment the counter and then retrieve its value.
+我们希望 API 给我们一个方法来增加计数器，然后检索它的值。
 
 ```go
 func TestCounter(t *testing.T) {
@@ -33,7 +32,7 @@ func TestCounter(t *testing.T) {
 ./sync_test.go:9:14: undefined: Counter
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## 为要运行的测试编写最小数量的代码，并检查失败的测试输出
 
 Let's define `Counter`.
 
@@ -43,14 +42,14 @@ type Counter struct {
 }
 ```
 
-Try again and it fails with the following
+再试一次，它会以以下方式失败
 
 ```
 ./sync_test.go:14:10: counter.Inc undefined (type Counter has no field or method Inc)
 ./sync_test.go:18:13: counter.Value undefined (type Counter has no field or method Value)
 ```
 
-So to finally make the test run we can define those methods
+为了最终运行测试，我们可以定义这些方法
 
 ```go
 func (c *Counter) Inc() {
@@ -62,7 +61,7 @@ func (c *Counter) Value() int {
 }
 ```
 
-It should now run and fail
+它现在应该运行并失败
 
 ```
 === RUN   TestCounter
@@ -74,7 +73,8 @@ It should now run and fail
 
 ## Write enough code to make it pass
 
-This should be trivial for Go experts like us. We need to keep some state for the counter in our datatype and then increment it on every `Inc` call
+对于像我们这样的 go 专家来说，这应该是微不足道的。我们需要在数据类型中为计数器保留一些状态，然后在每次 `Inc` 调用时增加它
+
 
 ```go
 type Counter struct {
@@ -92,7 +92,7 @@ func (c *Counter) Value() int {
 
 ## Refactor
 
-There's not a lot to refactor but given we're going to write more tests around `Counter` we'll write a small assertion function `assertCount` so the test reads a bit clearer.
+这里没有太多需要重构的东西，但考虑到我们将围绕 `Counter` 编写更多测试，我们将编写一个小断言函数 `assertCount`，这样测试读起来更清楚一些。
 
 ```go
 t.Run("incrementing the counter 3 times leaves it at 3", func(t *testing.T) {
@@ -114,7 +114,7 @@ func assertCounter(t testing.TB, got Counter, want int)  {
 
 ## Next steps
 
-That was easy enough but now we have a requirement that it must be safe to use in a concurrent environment. We will need to write a failing test to exercise this.
+这很简单，但现在我们要求它必须在并发环境中安全使用。我们将需要编写一个失败的测试来练习这一点。
 
 ## Write the test first
 
@@ -138,13 +138,19 @@ t.Run("it runs safely concurrently", func(t *testing.T) {
 })
 ```
 
-This will loop through our `wantedCount` and fire a goroutine to call `counter.Inc()`.
+这将循环遍历 `wantedCount` 并触发一个调用 `counter.Inc()` 的 goroutine。
 
-We are using [`sync.WaitGroup`](https://golang.org/pkg/sync/#WaitGroup) which is a convenient way of synchronising concurrent processes.
 
-> A WaitGroup waits for a collection of goroutines to finish. The main goroutine calls Add to set the number of goroutines to wait for. Then each of the goroutines runs and calls Done when finished. At the same time, Wait can be used to block until all goroutines have finished.
+我们使用 [`sync.WaitGroup`](https://golang.org/pkg/sync/#WaitGroup) 这是同步并发进程的一种方便的方法。
+                                                                
+
+> WaitGroup 等待一组 goroutine 完成。
+主 goroutine 调用 Add 来设置要等待的 goroutine 的数量。
+然后每个 goroutine 运行并在完成时调用Done。
+同时，可以使用 Wait 来阻塞，直到所有 goroutin e完成。
 
 By waiting for `wg.Wait()` to finish before making our assertions we can be sure all of our goroutines have attempted to `Inc` the `Counter`.
+在执行断言之前等待 `wg.Wait()` 完成，我们可以确保所有 goroutine 都试图 `Inc` 这个 `Counter`。
 
 ## Try to run the test
 
@@ -156,13 +162,13 @@ By waiting for `wg.Wait()` to finish before making our assertions we can be sure
 FAIL
 ```
 
-The test will _probably_ fail with a different number, but nonetheless it demonstrates it does not work when multiple goroutines are trying to mutate the value of the counter at the same time.
+这个测试 _可能_ 会失败输出了不同的数字，但尽管如此，它证明了当多个 goroutine 同时试图改变计数器的值时，它是不起作用的。
 
 ## Write enough code to make it pass
 
-A simple solution is to add a lock to our `Counter`, a [`Mutex`](https://golang.org/pkg/sync/#Mutex)
+一个简单的解决方案是给我们的 `Counter`添加一个锁，一个 [`Mutex`](https://golang.org/pkg/sync/#Mutex)
 
->A Mutex is a mutual exclusion lock. The zero value for a Mutex is an unlocked mutex.
+>Mutex 是一种互斥锁。互斥锁的零值是一个未锁定的互斥锁。
 
 ```go
 type Counter struct {
@@ -177,13 +183,13 @@ func (c *Counter) Inc() {
 }
 ```
 
-What this means is any goroutine calling `Inc` will acquire the lock on `Counter` if they are first. All the other goroutines will have to wait for it to be `Unlock`ed before getting access.
+这个是什么意思呢?任意 goroutine 调用 `Inc` 将获得 `Counter` 的锁, 如果这个 goroutine 是第一个的话.其它的 goroutine 将等待它被 `Unlock` 后才能进入。
 
-If you now re-run the test it should now pass because each goroutine has to wait its turn before making a change.
+如果您现在重新运行测试，那么它现在应该通过了，因为每个 goroutine 在进行更改之前都必须等待轮到自己。
 
-## I've seen other examples where the `sync.Mutex` is embedded into the struct.
-
-You may see examples like this
+## 我还见过其他同步的例子。`sync.Mutex` 嵌入到结构体中。
+ 
+你可能看过类似下面的列子:
 
 ```go
 type Counter struct {
@@ -192,7 +198,7 @@ type Counter struct {
 }
 ```
 
-It can be argued that it can make the code a bit more elegant.
+可以这样说，它可以使代码更优雅一些。
 
 ```go
 func (c *Counter) Inc() {
@@ -202,11 +208,16 @@ func (c *Counter) Inc() {
 }
 ```
 
-This _looks_ nice but while programming is a hugely subjective discipline, this is **bad and wrong**.
+这看起来不错，但编程是一个非常主观的学科，这是糟糕的和错误的。
 
-Sometimes people forget that embedding types means the methods of that type becomes _part of the public interface_; and you often will not want that. Remember that we should be very careful with our public APIs, the moment we make something public is the moment other code can couple themselves to it. We always want to avoid unnecessary coupling.
 
-Exposing `Lock` and `Unlock` is at best confusing but at worst potentially very harmful to your software if callers of your type start calling these methods.
+有时人们忘记了嵌入类型意味着该类型的方法成为公共接口的一部分;你通常不会想要那样。
+记住，我们应该非常小心我们的公共 api，当我们让一些东西成为公共的时候，其他代码就可以把自己和它结合起来。我们总是希望避免不必要的耦合。
+
+
+显示“锁定”和“解锁”最好的情况是令人困惑，但在最坏的情况下，如果您的类型的调用者开始调用这些方法，则可能对您的软件非常有害。
+暴露 `Lock` 和 `Unlock` 最好的情况是令人困惑，但在最坏的情况下，如果您的类型的调用者开始调用这些方法，则可能对您的软件非常有害。
+
 
 ![Showing how a user of this API can wrongly change the state of the lock](https://i.imgur.com/SWYNpwm.png)
 
@@ -214,9 +225,9 @@ _This seems like a really bad idea_
 
 ## Copying mutexes
 
-Our test passes but our code is still a bit dangerous
+测试通过了,但是我们的代码还是有一点风险.
 
-If you run `go vet` on your code you should get an error like the following
+如果你运行 `go vet`, 你应该会得到下面的错误
 
 ```
 sync/v2/sync_test.go:16: call of assertCounter copies lock value: v1.Counter contains sync.Mutex
@@ -227,15 +238,16 @@ A look at the documentation of [`sync.Mutex`](https://golang.org/pkg/sync/#Mutex
 
 > A Mutex must not be copied after first use.
 
-When we pass our `Counter` (by value) to `assertCounter` it will try and create a copy of the mutex.
+当我们传递 `Counter` (by value) 给 `assertCounter`, 它将试着创建一个 mutex 的副本.
 
-To solve this we should pass in a pointer to our `Counter` instead, so change the signature of `assertCounter`
+为了解决这个问题, 我们应该传递指向 `Counter` 的指针, 因此修改 `assertCounter` 的签名
 
 ```go
 func assertCounter(t *testing.T, got *Counter, want int)
 ```
 
-Our tests will no longer compile because we are trying to pass in a `Counter` rather than a `*Counter`. To solve this I prefer to create a constructor which shows readers of your API that it would be better to not initialise the type yourself.
+Our tests will no longer compile because we are trying to pass in a `Counter` rather than a `*Counter`. 
+To solve this I prefer to create a constructor which shows readers of your API that it would be better to not initialise the type yourself.
 
 ```go
 func NewCounter() *Counter {
@@ -249,15 +261,17 @@ Use this function in your tests when initialising `Counter`.
 
 We've covered a few things from the [sync package](https://golang.org/pkg/sync/)
 
-- `Mutex` allows us to add locks to our data
-- `Waitgroup` is a means of waiting for goroutines to finish jobs
+- `Mutex` 能让我们给我们的数据添加锁
+- `Waitgroup` 表示等待 goroutine 完成
 
 ### When to use locks over channels and goroutines?
 
 [We've previously covered goroutines in the first concurrency chapter](concurrency.md) which let us write safe concurrent code so why would you use locks?
 [The go wiki has a page dedicated to this topic; Mutex Or Channel](https://github.com/golang/go/wiki/MutexOrChannel)
 
-> A common Go newbie mistake is to over-use channels and goroutines just because it's possible, and/or because it's fun. Don't be afraid to use a sync.Mutex if that fits your problem best. Go is pragmatic in letting you use the tools that solve your problem best and not forcing you into one style of code.
+> 一个常见的 Go 新手错误是过度使用 channel 和 goroutine，仅仅因为它是可能的，或者因为它很有趣。
+不要害怕使用 sync.Mutext，如果它最适合你的问题。
+Go 是实用的，它让你使用最能解决问题的工具，而不是强迫你使用一种代码风格。
 
 Paraphrasing:
 
@@ -266,9 +280,9 @@ Paraphrasing:
 
 ### go vet
 
-Remember to use go vet in your build scripts as it can alert you to some subtle bugs in your code before they hit your poor users.
+记住，在构建脚本中使用 go vet，因为它可以在代码中出现一些微妙的错误时提醒您，以免它们影响到可怜的用户。
 
-### Don't use embedding because it's convenient
+### 不要因为方便而使用 embedding
 
 - Think about the effect embedding has on your public API.
 - Do you _really_ want to expose these methods and have people coupling their own code to them?
