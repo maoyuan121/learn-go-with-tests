@@ -2,7 +2,7 @@
 
 **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/mocking)**
 
-You have been asked to write a program which counts down from 3, printing each number on a new line (with a 1 second pause) and when it reaches zero it will print "Go!" and exit.
+你被要求写一个程序从 3 开始倒数，每一个数字在一个新的行（有 1 秒钟的暂停），当到 0 的时候会打印出  "Go!" 并退出。
 
 ```
 3
@@ -11,7 +11,7 @@ You have been asked to write a program which counts down from 3, printing each n
 Go!
 ```
 
-We'll tackle this by writing a function called `Countdown` which we will then put inside a `main` program so it looks something like this:
+我们将通过编写一个名为 `Countdown` 的函数来解决这个问题，然后将其放入 `main` 程序中，使其看起来像这样：
 
 ```go
 package main
@@ -21,13 +21,14 @@ func main() {
 }
 ```
 
-While this is a pretty trivial program, to test it fully we will need as always to take an _iterative_, _test-driven_ approach.
+虽然这是一个非常简单的程序，但要完全测试它，我们需要像往常一样采用 _iterative_， _test-driven_ 方法。
 
-What do I mean by iterative? We make sure we take the smallest steps we can to have _useful software_.
+我说的迭代是什么意思？我们确保我们采取最小的步骤，我们可以得到有用的软件。
 
-We don't want to spend a long time with code that will theoretically work after some hacking because that's often how developers fall down rabbit holes. **It's an important skill to be able to slice up requirements as small as you can so you can have _working software_.**
+我们不想花很长时间编写那些理论上可以在黑客攻击后正常工作的代码，因为这通常是开发人员掉进兔子洞的原因。
+这是一个重要的技能，能够分割需求尽可能小，这样你就可以有  _working software_
 
-Here's how we can divide our work up and iterate on it:
+以下是我们如何划分工作并进行迭代:
 
 - Print 3
 - Print 3, 2, 1 and Go!
@@ -35,7 +36,7 @@ Here's how we can divide our work up and iterate on it:
 
 ## Write the test first
 
-Our software needs to print to stdout and we saw how we could use DI to facilitate testing this in the DI section.
+我们的软件需要打印到标准输出 stdout，我们在 DI 部分看到了如何使用 DI 来促进测试。
 
 ```go
 func TestCountdown(t *testing.T) {
@@ -52,12 +53,12 @@ func TestCountdown(t *testing.T) {
 }
 ```
 
-If anything like `buffer` is unfamiliar to you, re-read [the previous section](dependency-injection.md).
+如果你不熟悉 `buffer`， 可以重读 [the previous section](dependency-injection.md)。
 
-We know we want our `Countdown` function to write data somewhere and `io.Writer` is the de-facto way of capturing that as an interface in Go.
-
-- In `main` we will send to `os.Stdout` so our users see the countdown printed to the terminal.
-- In test we will send to `bytes.Buffer` so our tests can capture what data is being generated.
+我们知道我们向让我们的 `Countdown` 函数在某处写一些数据，`io.Writer` 实际上是在 go 中捕获它作为界面的方法。
+                                   
+- 在 `main` 中我们将发送到 `os.Stdout`，以便我们的用户看到倒计时打印到终端。
+- 在测试中我们将发送到 `bytes.Buffer`，这样我们的测试就能捕捉到什么生成了什么数据。
 
 ## Try and run the test
 
@@ -65,13 +66,13 @@ We know we want our `Countdown` function to write data somewhere and `io.Writer`
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
-Define `Countdown`
+定义 `Countdown`
 
 ```go
 func Countdown() {}
 ```
 
-Try again
+再试
 
 ```go
 ./countdown_test.go:11:11: too many arguments in call to Countdown
@@ -79,7 +80,7 @@ Try again
     want ()
 ```
 
-The compiler is telling you what your function signature could be, so update it.
+编译器告诉你函数的签名应该是什么样的，因此更新。
 
 ```go
 func Countdown(out *bytes.Buffer) {}
@@ -97,11 +98,11 @@ func Countdown(out *bytes.Buffer) {
 }
 ```
 
-We're using `fmt.Fprint` which takes an `io.Writer` (like `*bytes.Buffer`) and sends a `string` to it. The test should pass.
+我们使用 `fmt.Fprint`，它接收一个 `io.Writer`（如 `*bytes.Buffer`）传递一个 `string` 给它。测试应该能通过了。
 
 ## Refactor
 
-We know that while `*bytes.Buffer` works, it would be better to use a general purpose interface instead.
+我们知道 `*bytes.Buffer` 能正常工作了，使用通用接口会更好。
 
 ```go
 func Countdown(out io.Writer) {
@@ -109,9 +110,10 @@ func Countdown(out io.Writer) {
 }
 ```
 
-Re-run the tests and they should be passing.
+重新运行测试，应该也能通过。
 
-To complete matters, let's now wire up our function into a `main` so we have some working software to reassure ourselves we're making progress.
+为了完成任务，现在让我们将函数连接到一个 `main` 中，这样我们就有了一些可以工作的软件来确保我们正在取得进展。
+
 
 ```go
 package main
@@ -131,15 +133,16 @@ func main() {
 }
 ```
 
-Try and run the program and be amazed at your handywork.
+尝试运行这个程序，并为您的手工工作感到惊奇。
 
-Yes this seems trivial but this approach is what I would recommend for any project. **Take a thin slice of functionality and make it work end-to-end, backed by tests.**
+是的，这似乎是微不足道的，我为任何项目都推荐这种方法。**取一小部分功能，让它端到端工作，并在测试的支持下。**
 
-Next we can make it print 2,1 and then "Go!".
+接下来我们让它打印出 2，1 然后是"Go!"。
 
 ## Write the test first
 
-By investing in getting the overall plumbing working right, we can iterate on our solution safely and easily. We will no longer need to stop and re-run the program to be confident of it working as all the logic is tested.
+通过投资使整个管道正常工作，我们可以安全地轻松地迭代我们的解决方案。
+我们将不再需要停止并重新运行程序，以确信它能工作，因为所有的逻辑都已经过测试。
 
 ```go
 func TestCountdown(t *testing.T) {
@@ -159,7 +162,8 @@ Go!`
 }
 ```
 
-The backtick syntax is another way of creating a `string` but lets you put things like newlines which is perfect for our test.
+backtick 语法是另一种创建 `string` 的方法，但让你把像换行符这样的东西，这对我们的测试来说是完美的。
+
 
 ## Try and run the test
 
@@ -180,11 +184,12 @@ func Countdown(out io.Writer) {
 }
 ```
 
-Use a `for` loop counting backwards with `i--` and use `fmt.Fprintln` to print to `out` with our number followed by a newline character. Finally use `fmt.Fprint` to send "Go!" aftward.
+Use a `for` loop counting backwards with `i--` and use `fmt.Fprintln` to print to `out` with our number followed by a newline character. 
+Finally use `fmt.Fprint` to send "Go!" aftward.
 
 ## Refactor
 
-There's not much to refactor other than refactoring some magic values into named constants.
+除了将一些神奇的值重构为命名常量之外，没有什么需要重构的。
 
 ```go
 const finalWord = "Go!"
@@ -198,9 +203,9 @@ func Countdown(out io.Writer) {
 }
 ```
 
-If you run the program now, you should get the desired output but we don't have it as a dramatic countdown with the 1 second pauses.
+如果您现在运行程序，您应该得到所需的输出，但我们没有将其作为一个引人注目的倒计时 1 秒暂停。
 
-Go lets you achieve this with `time.Sleep`. Try adding it in to our code.
+Go让你用 `time.Sleep` 来实现这个目标。试着把它添加到我们的代码中。
 
 ```go
 func Countdown(out io.Writer) {
@@ -218,30 +223,33 @@ If you run the program it works as we want it to.
 
 ## Mocking
 
-The tests still pass and the software works as intended but we have some problems:
-- Our tests take 4 seconds to run.
-    - Every forward thinking post about software development emphasises the importance of quick feedback loops.
-    - **Slow tests ruin developer productivity**.
-    - Imagine if the requirements get more sophisticated warranting more tests. Are we happy with 4s added to the test run for every new test of `Countdown`?
-- We have not tested an important property of our function.
+测试能通过了，软件也按照预想一样运行了，但是我们还有些问题：
+- 我们的测试花了 4 秒钟来运行。
+    - 每一篇关于软件开发的前瞻性文章都强调快速反馈循环的重要性。
+    - **缓慢的测试会破坏开发人员的生产力**。
+    - 想象一下，如果需求变得更加复杂，需要进行更多的测试。我们对每一次“倒计时”的新测试都添加4s试运行感到满意吗?
+- 我们还没有测试函数的一个重要性质。
 
-We have a dependency on `Sleep`ing which we need to extract so we can then control it in our tests.
+我们对 `Sleep` 有依赖性，我们需要提取它，这样我们就可以在测试中控制它。
 
-If we can _mock_ `time.Sleep` we can use _dependency injection_ to use it instead of a "real" `time.Sleep` and then we can **spy on the calls** to make assertions on them.
+如果我们要 mock `time.Sleep` 我们可以使用 _dependency injection_ 来代替真正的 `time.Sleep`，然后我们可以“监视调用”，对他们做出断言。
+
 
 ## Write the test first
 
-Let's define our dependency as an interface. This lets us then use a _real_ Sleeper in `main` and a _spy sleeper_ in our tests. By using an interface our `Countdown` function is oblivious to this and adds some flexibility for the caller.
-
+让我们将依赖定义为一个接口。这让我们可以在 `main` 中使用 _real_ Sleeper，在测试中使用 _spy Sleeper_。
+通过使用一个接口，我们的 `Countdown` 函数是不在意的，并为调用者增加了一些灵活性。
+                                                                         
 ```go
 type Sleeper interface {
     Sleep()
 }
 ```
 
-I made a design decision that our `Countdown` function would not be responsible for how long the sleep is. This simplifies our code a little for now at least and means a user of our function can configure that sleepiness however they like.
+我做了一个设计决定，我们的 `Countdown` 函数将不负责多长时间的睡眠。
+至少到目前为止，这稍微简化了我们的代码，这意味着我们函数的用户可以按照他们喜欢的方式配置 sleep。
 
-Now we need to make a _mock_ of it for our tests to use.
+现在我们需要创建一个 _mock_ 以供测试使用。
 
 ```go
 type SpySleeper struct {
@@ -253,9 +261,12 @@ func (s *SpySleeper) Sleep() {
 }
 ```
 
-_Spies_ are a kind of _mock_ which can record how a dependency is used. They can record the arguments sent in, how many times it has been called, etc. In our case, we're keeping track of how many times `Sleep()` is called so we can check it in our test.
+_Spies_ 是一种 _mock_，它可以记录依赖是如何使用的。
+他们可以记录发送的参数，调用的次数，等等。
+在我们的例子中，我们跟踪 `Sleep()` 被调用的次数，这样我们就可以在测试中检查它。
 
-Update the tests to inject a dependency on our Spy and assert that the sleep has been called 4 times.
+更新测试，注入对我们的间谍的依赖，并断言睡眠已被调用 4 次。
+
 
 ```go
 func TestCountdown(t *testing.T) {
@@ -290,7 +301,7 @@ too many arguments in call to Countdown
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
-We need to update `Countdown` to accept our `Sleeper`
+我们需要更新 `Countdown` 接收一个 `Sleeper` 参数
 
 ```go
 func Countdown(out io.Writer, sleeper Sleeper) {
@@ -304,7 +315,8 @@ func Countdown(out io.Writer, sleeper Sleeper) {
 }
 ```
 
-If you try again, your `main` will no longer compile for the same reason
+如果您再次尝试，你的 `main` 将不再编译的原因相同
+
 
 ```
 ./main.go:26:11: not enough arguments in call to Countdown
@@ -312,7 +324,7 @@ If you try again, your `main` will no longer compile for the same reason
     want (io.Writer, Sleeper)
 ```
 
-Let's create a _real_ sleeper which implements the interface we need
+让我们创建一个真正的 sleeper， 它实现了我们需要的接口
 
 ```go
 type DefaultSleeper struct {}
@@ -322,7 +334,7 @@ func (d *DefaultSleeper) Sleep() {
 }
 ```
 
-We can then use it in our real application like so
+我们可以在真正的应用中如下一样使用
 
 ```go
 func main() {
@@ -333,7 +345,7 @@ func main() {
 
 ## Write enough code to make it pass
 
-The test is now compiling but not passing because we're still calling the `time.Sleep` rather than the injected in dependency. Let's fix that.
+现在测试可以编译通过了，但是没有通过，我们任然调用了 `time.Sleep` 还不是用的依赖注入的。现在修复。
 
 ```go
 func Countdown(out io.Writer, sleeper Sleeper) {
@@ -347,13 +359,13 @@ func Countdown(out io.Writer, sleeper Sleeper) {
 }
 ```
 
-The test should pass and no longer take 4 seconds.
+测试现在应该能通过，并且不再需要花费 4 秒钟了。
 
 ### Still some problems
 
-There's still another important property we haven't tested.
+还有个重要的属性我们没有测试。
 
-`Countdown` should sleep before each print, e.g:
+`Countdown` 应该在每次打印前睡一下，例如：
 
 - `Sleep`
 - `Print N`
@@ -363,9 +375,10 @@ There's still another important property we haven't tested.
 - `Print Go!`
 - etc
 
-Our latest change only asserts that it has slept 4 times, but those sleeps could occur out of sequence.
+我们最新的更改只断言它已经休眠了 4 次，但是这些休眠可能会不按顺序发生。
 
-When writing tests if you're not confident that your tests are giving you sufficient confidence, just break it! (make sure you have committed your changes to source control first though). Change the code to the following
+在编写测试时，如果您不相信测试给了您足够的信心，那么就打破它!
+(确保您已经首先向源代码控制提交了更改)。将代码更改为以下内容
 
 ```go
 func Countdown(out io.Writer, sleeper Sleeper) {
@@ -382,11 +395,11 @@ func Countdown(out io.Writer, sleeper Sleeper) {
 }
 ```
 
-If you run your tests they should still be passing even though the implementation is wrong.
+如果您运行您的测试，它们仍然应该通过，即使实现是错误的。
 
-Let's use spying again with a new test to check the order of operations is correct.
+让我们再用一种新的测试来检查行动的顺序是否正确。
 
-We have two different dependencies and we want to record all of their operations into one list. So we'll create _one spy for them both_.
+我们有两个不同的依赖项，我们希望将它们的所有操作记录到一个列表中。所以我们将为他们两个都创建一个间谍。
 
 ```go
 type CountdownOperationsSpy struct {
@@ -406,7 +419,9 @@ const write = "write"
 const sleep = "sleep"
 ```
 
-Our `CountdownOperationsSpy` implements both `io.Writer` and `Sleeper`, recording every call into one slice. In this test we're only concerned about the order of operations, so just recording them as list of named operations is sufficient.
+我们的 `CountdownOperationsSpy` 实现了 `io.Writer` 和 `Sleeper`。
+
+recording every call into one slice. In this test we're only concerned about the order of operations, so just recording them as list of named operations is sufficient.
 
 We can now add a sub-test into our test suite which verifies our sleeps and prints operate in the order we hope
 

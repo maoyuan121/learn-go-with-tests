@@ -2,11 +2,12 @@
 
 **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/structs)**
 
-Suppose that we need some geometry code to calculate the perimeter of a rectangle given a height and width. We can write a `Perimeter(width float64, height float64)` function, where `float64` is for floating-point numbers like `123.45`.
+假设我们需要一些几何代码来计算给定高度和宽度的矩形的周长。
+我们可以编写一个 `Perimeter(width float64, height float64)` 函数，其中 `float64` 用于浮点数，如 `123.45`。
 
-The TDD cycle should be pretty familiar to you by now.
+到现在为止，您对 TDD cycle 应该很熟悉了。
 
-## Write the test first
+## 首先写测试代码
 
 ```go
 func TestPerimeter(t *testing.T) {
@@ -19,7 +20,7 @@ func TestPerimeter(t *testing.T) {
 }
 ```
 
-Notice the new format string? The `f` is for our `float64` and the `.2` means print 2 decimal places.
+注意其中的 format string。这个 `f` 代表的是我们的 `float64`，`.2` 代表打印 2 位小数。
 
 ## Try to run the test
 
@@ -43,7 +44,7 @@ func Perimeter(width float64, height float64) float64 {
 }
 ```
 
-So far, so easy. Now let's create a function called `Area(width, height float64)` which returns the area of a rectangle.
+现在我们创建一个 `Area(width, height float64)` 函数，它将返回矩形的面积。
 
 Try to do it yourself, following the TDD cycle.
 
@@ -83,13 +84,15 @@ func Area(width float64, height float64) float64 {
 
 ## Refactor
 
-Our code does the job, but it doesn't contain anything explicit about rectangles. An unwary developer might try to supply the width and height of a triangle to these functions without realising they will return the wrong answer.
+ 我们的代码完成了任务，但它没有包含任何关于矩形的显式内容。
+ 粗心的开发人员可能试图为这些函数提供三角形的宽度和高度，而没有意识到它们将返回错误的答案。
 
-We could just give the functions more specific names like `RectangleArea`. A neater solution is to define our own _type_ called `Rectangle` which encapsulates this concept for us.
 
-We can create a simple type using a **struct**. [A struct](https://golang.org/ref/spec#Struct_types) is just a named collection of fields where you can store data.
+我们可以给函数起一个更具体的名字，比如 `RectangleArea`。一个更简洁的解决方案是定义我们自己的名为 `Rectangle` 的类型，它为我们封装了这个概念。
 
-Declare a struct like this
+我们可以使用 **struct** 创建一个简单的类型。[A struct](https://golang.org/ref/spec#Struct_types) 只是用于存储数据的指定字段集合。
+
+声明一个结构如下：
 
 ```go
 type Rectangle struct {
@@ -98,7 +101,7 @@ type Rectangle struct {
 }
 ```
 
-Now let's refactor the tests to use `Rectangle` instead of plain `float64`s.
+现在重构测试，使用 `Rectangle` 替代 `float64`。
 
 ```go
 func TestPerimeter(t *testing.T) {
@@ -144,9 +147,10 @@ func Area(rectangle Rectangle) float64 {
 }
 ```
 
-I hope you'll agree that passing a `Rectangle` to a function conveys our intent more clearly but there are more benefits of using structs that we will get on to.
 
-Our next requirement is to write an `Area` function for circles.
+我希望你会同意，传递一个 `Rectangle` 给函数更清楚地传达了我们的意图，但使用结构体还有更多的好处，我们将继续讨论。
+
+接下来我们将为原型编写一个 `Area` 函数。
 
 ## Write the test first
 
@@ -175,8 +179,11 @@ func TestArea(t *testing.T) {
 
 }
 ```
-
-As you can see, the 'f' has been replaced by 'g', using 'f' it could be difficult to know the exact decimal number, with 'g' we get a complete decimal number in the error message \([fmt options](https://golang.org/pkg/fmt/)\).
+ 
+ 如你所见，`f` 已经被 `g` 取代了，
+ 使用 `f` 可能很难知道精确的小数，
+ 使用 `g`，我们在错误消息中得到一个完整的十进制数
+  \([fmt options](https://golang.org/pkg/fmt/)\).
 
 ## Try to run the test
 
@@ -196,21 +203,21 @@ Now try to run the tests again
 
 `./shapes_test.go:29:14: cannot use circle (type Circle) as type Rectangle in argument to Area`
 
-Some programming languages allow you to do something like this:
+有些变成语言允许你编写如下的代码：
 
 ```go
 func Area(circle Circle) float64 { ... }
 func Area(rectangle Rectangle) float64 { ... }
 ```
 
-But you cannot in Go
+但是在 Go 里面不行
 
 `./shapes.go:20:32: Area redeclared in this block`
 
-We have two choices:
+我们有两个选择：
 
-* You can have functions with the same name declared in different _packages_. So we could create our `Area(Circle)` in a new package, but that feels overkill here.
-* We can define [_methods_](https://golang.org/ref/spec#Method_declarations) on our newly defined types instead.
+* 你可以在不同的 _packages_ 中声明相同的函数名。所以我们可以在一个新包中创建 `Area(Circle)`，但在这里感觉有点过分了。
+* 可以在新定义的类型上定义 [_methods_](https://golang.org/ref/spec#Method_declarations)。
 
 ### What are methods?
 
