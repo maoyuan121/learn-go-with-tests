@@ -2,17 +2,20 @@
 
 **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/context)**
 
-Software often kicks off long-running, resource-intensive processes (often in goroutines). If the action that caused this gets cancelled or fails for some reason you need to stop these processes in a consistent way through your application.
 
-If you don't manage this your snappy Go application that you're so proud of could start having difficult to debug performance problems.
+软件经常启动长时间运行的、资源密集型的进程(通常是goroutines)。
+如果导致此操作的操作因某种原因被取消或失败，则需要在应用程序中以一致的方式停止这些进程。
 
-In this chapter we'll use the package `context` to help us manage long-running processes.
+如果您不管理这一点，您引以为傲的时髦 Go 应用程序可能会开始难以调试性能问题。
 
-We're going to start with a classic example of a web server that when hit kicks off a potentially long-running process to fetch some data for it to return in the response.
+在本章中，我们将使用包 `context` 来帮助我们管理长时间运行的 process。
 
-We will exercise a scenario where a user cancels the request before the data can be retrieved and we'll make sure the process is told to give up.
+我们将从一个经典的 web 服务器的例子开始，当点击时，启动一个潜在的长时间运行的进程来获取一些数据，让它在响应中返回。
 
-I've set up some code on the happy path to get us started. Here is our server code.
+
+我们将演练一个场景，其中用户在可以检索数据之前取消请求，我们将确保流程被告知放弃。
+
+我已经设置了一些代码，让我们开始。这是我们的服务器代码。
 
 ```go
 func Server(store Store) http.HandlerFunc {
@@ -22,7 +25,7 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-The function `Server` takes a `Store` and returns us a `http.HandlerFunc`. Store is defined as:
+`Server` 函数接收一个 `Store` 参数，返回一个 `http.HandlerFunc`。Store 定义如下：
 
 ```go
 type Store interface {
@@ -30,9 +33,9 @@ type Store interface {
 }
 ```
 
-The returned function calls the `store`'s `Fetch` method to get the data and writes it to the response.
+这个返回得函数调用 `store` 的 `Fetch` 方法来获取一些数据并写到 response 中。
 
-We have a corresponding stub for `Store` which we use in a test.
+在测试中，我们有一个对应的 Store 存根。
 
 ```go
 type StubStore struct {
@@ -58,11 +61,11 @@ func TestServer(t *testing.T) {
 }
 ```
 
-Now that we have a happy path, we want to make a more realistic scenario where the `Store` can't finish a`Fetch` before the user cancels the request.
+我们想要创建一个更现实的场景，即 `Store` 在用户取消请求之前无法完成 `fetch`。
 
 ## Write the test first
 
-Our handler will need a way of telling the `Store` to cancel the work so update the interface.
+我们的处理程序需要一种方法来告诉 `Store` 取消工作。更新接口。
 
 ```go
 type Store interface {
@@ -71,7 +74,9 @@ type Store interface {
 }
 ```
 
-We will need to adjust our spy so it takes some time to return `data` and a way of knowing it has been told to cancel. We'll also rename it to `SpyStore` as we are now observing the way it is called. It'll have to add `Cancel` as a method to implement the `Store` interface.
+我们将需要调整我们的间谍，以便它需要一些时间返回 `data` 和一种知道它已被告知取消的方式。我们还将把它重命名为 `SpyStore`，
+因为我们现在正在观察它的叫法。它必须添加 `Cancel` 作为一个方法来实现 `Store` 接口。
+
 
 ```go
 type SpyStore struct {
@@ -89,7 +94,7 @@ func (s *SpyStore) Cancel() {
 }
 ```
 
-Let's add a new test where we cancel the request before 100 milliseconds and check the store to see if it gets cancelled.
+让我们添加一个新的测试，在 100 毫秒之前取消请求，并检查存储，看看它是否被取消。
 
 ```go
 t.Run("tells store to cancel work if request is cancelled", func(t *testing.T) {
@@ -115,11 +120,14 @@ t.Run("tells store to cancel work if request is cancelled", func(t *testing.T) {
 
 From the [Go Blog: Context](https://blog.golang.org/context)
 
-> The context package provides functions to derive new Context values from existing ones. These values form a tree: when a Context is canceled, all Contexts derived from it are also canceled.
+> context 包提供了从现有值派生新的上下文值的函数。
+这些值形成一个树: 当取消上下文时，从它派生的所有上下文也将被取消。
 
-It's important that you derive your contexts so that cancellations are propagated throughout the call stack for a given request.
+获取上下文非常重要，以便在给定请求的整个调用堆栈中传播取消。
 
-What we do is derive a new `cancellingCtx` from our `request` which returns us a `cancel` function. We then schedule that function to be called in 5 milliseconds by using `time.AfterFunc`. Finally we use this new context in our request by calling `request.WithContext`.
+我们所做的是从 `request` 派生一个新的 `cancellingCtx`，它返回一个 `cancel` 函数。
+然后我们使用 `time.AfterFunc` 来安排在 5 毫秒内调用该函数。
+最后，我们通过调用 `request.WithContext` 在请求中使用这个新上下文。
 
 ## Try to run the test
 
@@ -133,7 +141,8 @@ The test fails as we'd expect.
 
 ## Write enough code to make it pass
 
-Remember to be disciplined with TDD. Write the _minimal_ amount of code to make our test pass.
+记住要遵守TDD。编写最小数量的代码使我们的测试通过。
+
 
 ```go
 func Server(store Store) http.HandlerFunc {
@@ -144,11 +153,12 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-This makes this test pass but it doesn't feel good does it! We surely shouldn't be cancelling `Store` before we fetch on _every request_.
+这使得这个测试通过了，但是感觉不太好!我们当然不应该在获取 _every request_ 之前取消 `Store`。
 
-By being disciplined it highlighted a flaw in our tests, this is a good thing!
+它突出了我们测试中的一个缺陷，这是一件好事!
 
-We'll need to update our happy path test to assert that it does not get cancelled.
+我们需要更新测试，以确保它没有被取消。
+
 
 ```go
 t.Run("returns data from store", func(t *testing.T) {
@@ -171,7 +181,7 @@ t.Run("returns data from store", func(t *testing.T) {
 })
 ```
 
-Run both tests and the happy path test should now be failing and now we're forced to do a more sensible implementation.
+测试现在应该失败，现在我们被迫做一个更合理的实现。
 
 ```go
 func Server(store Store) http.HandlerFunc {
@@ -194,15 +204,18 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-What have we done here?
+我们在这里做了什么?
 
-`context` has a method `Done()` which returns a channel which gets sent a signal when the context is "done" or "cancelled". We want to listen to that signal and call `store.Cancel` if we get it but we want to ignore it if our `Store` manages to `Fetch` before it.
+`context` 有一个方法 `Done()`，它返回一个通道，当上下文被 `Done` 或 `cancelled` 时发送一个信号。
+我们想要听到这个信号并调用 `store.Cancel`，如果我们得到它但我们想忽略它如果我们的 `Store` 成功地在它之前 `Fetch`。
 
-To manage this we run `Fetch` in a goroutine and it will write the result into a new channel `data`. We then use `select` to effectively race to the two asynchronous processes and then we either write a response or `Cancel`.
+为了管理这个，我们在 goroutine 中运行 `Fetch`，它将结果写入一个新的通道 `data`。
+然后我们使用 `select`  有效地 race 两个异步进程，然后我们要么写一个响应，要么写一个 `Cancel`。
 
 ## Refactor
 
-We can refactor our test code a bit by making assertion methods on our spy
+我们可以通过在间谍上创建断言方法来重构测试代码
+
 
 ```go
 type SpyStore struct {
@@ -226,7 +239,7 @@ func (s *SpyStore) assertWasNotCancelled() {
 }
 ```
 
-Remember to pass in the `*testing.T` when creating the spy.
+记得当创建 spy  的时候将 `*testing.T` 给传递进去。
 
 ```go
 func TestServer(t *testing.T) {
@@ -267,29 +280,38 @@ func TestServer(t *testing.T) {
 }
 ```
 
-This approach is ok, but is it idiomatic?
+这种方法是可行的，但它是否具有习惯用法?
 
-Does it make sense for our web server to be concerned with manually cancelling `Store`? What if `Store` also happens to depend on other slow-running processes? We'll have to make sure that `Store.Cancel` correctly propagates the cancellation to all of its dependants.
+我们的 web 服务器手动取消 `Store` 有意义吗?
+如果 `Store` 碰巧也依赖于其他运行缓慢的进程呢?
+我们必须确保 `Store.Cancel` 正确地将取消传播到它的所有依赖项。
 
-One of the main points of `context` is that it is a consistent way of offering cancellation.
+`context` 的一个要点是，它是提供取消的一致方式。
 
 [From the go doc](https://golang.org/pkg/context/)
 
-> Incoming requests to a server should create a Context, and outgoing calls to servers should accept a Context. The chain of function calls between them must propagate the Context, optionally replacing it with a derived Context created using WithCancel, WithDeadline, WithTimeout, or WithValue. When a Context is canceled, all Contexts derived from it are also canceled.
+
+> 向服务器发出的传入请求应该创建一个 Context，而向服务器发出的调用应该接受一个 Context。
+它们之间的函数调用链必须传播上下文，可以选择用派生上下文替换它，派生上下文使用 WithCancel、WithDeadline、WithTimeout 或 WithValue 创建。
+当取消上下文时，从它派生的所有上下文也将被取消。
 
 From the [Go Blog: Context](https://blog.golang.org/context) again:
 
-> At Google, we require that Go programmers pass a Context parameter as the first argument to every function on the call path between incoming and outgoing requests. This allows Go code developed by many different teams to interoperate well. It provides simple control over timeouts and cancelation and ensures that critical values like security credentials transit Go programs properly.
+> 在谷歌，我们要求 Go 程序员将 Context 参数作为第一个参数传递给传入和传出请求之间的调用路径上的每个函数。
+这使得许多不同团队开发的 Go 代码能够很好地互操作。
+它提供了对超时和取消的简单控制，并确保安全凭据等关键值能够正确地传输 Go 程序。
 
 (Pause for a moment and think of the ramifications of every function having to send in a context, and the ergonomics of that.)
 
-Feeling a bit uneasy? Good. Let's try and follow that approach though and instead pass through the `context` to our `Store` and let it be responsible. That way it can also pass the `context` through to its dependants and they too can be responsible for stopping themselves.
+感觉有点不舒服?好。让我们尝试着遵循这种方法，而不是通过 `context` 传递给我们的 `Store`，让它负责任。通过这种方式，它也可以将 `context` 传递给它的依赖者，它们也可以负责停止自己。
+
 
 ## Write the test first
 
-We'll have to change our existing tests as their responsibilities are changing. The only thing our handler is responsible for now is making sure it sends a context through to the downstream `Store` and that it handles the error that will come from the `Store` when it is cancelled.
+我们将不得不改变现有的测试，因为它们的职责正在发生变化。
+我们的处理器现在唯一负责的事情是确保它发送一个 context 到下游的 `Store`，它处理的错误将来自 `Store` 当它被取消。
 
-Let's update our `Store` interface to show the new responsibilities.
+让我们更新 `Store` 接口以显示新的职责。
 
 ```go
 type Store interface {
@@ -297,7 +319,7 @@ type Store interface {
 }
 ```
 
-Delete the code inside our handler for now
+删除 handler 里面的代码
 
 ```go
 func Server(store Store) http.HandlerFunc {
@@ -306,7 +328,7 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-Update our `SpyStore`
+更新我们的 `SpyStore`
 
 ```go
 type SpyStore struct {
@@ -341,17 +363,19 @@ func (s *SpyStore) Fetch(ctx context.Context) (string, error) {
 }
 ```
 
-We have to make our spy act like a real method that works with `context`.
+我们必须让我们的 spy 的行为像一个真正的方法，与 `context` 一起工作。
 
-We are simulating a slow process where we build the result slowly by appending the string, character by character in a goroutine. When the goroutine finishes its work it writes the string to the `data` channel. The goroutine listens for the `ctx.Done` and will stop the work if a signal is sent in that channel.
+我们正在模拟一个缓慢的过程，通过在 goroutine 中一个字符一个字符地添加字符串来缓慢地构建结果。
+当 goroutine 完成它的工作时，它将字符串写入 `data` 通道。
+goroutine监听 `ctx.Done`，并在该通道中发送信号时停止工作。
 
-Finally the code uses another `select` to wait for that goroutine to finish its work or for the cancellation to occur.
+最后，代码使用另一个 `select` 来等待 goroutine 完成它的工作或取消发生。
 
-It's similar to our approach from before, we use Go's concurrency primitives to make two asynchronous processes race each other to determine what we return.
+这与之前的方法类似，我们使用 Go 的并发原语使两个异步进程相互竞争以确定返回的内容。
 
-You'll take a similar approach when writing your own functions and methods that accept a `context` so make sure you understand what's going on.
+在编写接受 `context` 的函数和方法时，您将采用类似的方法，因此请确保您理解发生了什么。
 
-Finally we can update our tests. Comment out our cancellation test so we can fix the happy path test first.
+我们终于可以更新测试了。注释掉我们的取消测试，这样我们可以先修复快乐路径测试。
 
 ```go
 t.Run("returns data from store", func(t *testing.T) {
@@ -390,11 +414,13 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-Our happy path should be... happy. Now we can fix the other test.
+我们的幸福之路应该是……快乐。现在我们可以修改另一个测试了。
 
 ## Write the test first
 
-We need to test that we do not write any kind of response on the error case. Sadly `httptest.ResponseRecorder` doesn't have a way of figuring this out so we'll have to role our own spy to test for this.
+我们需要测试我们没有对错误情况编写任何类型的响应。
+不幸的是 `httptest.ResponseRecorder` 没有办法解决这个问题，所以我们必须扮演我们自己的间谍来测试。
+
 
 ```go
 type SpyResponseWriter struct {
@@ -416,7 +442,7 @@ func (s *SpyResponseWriter) WriteHeader(statusCode int) {
 }
 ```
 
-Our `SpyResponseWriter` implements `http.ResponseWriter` so we can use it in the test.
+我们的 `SpyResponseWriter` 实现了 `http.ResponseWriter`，因此可以在测试中使用它。
 
 ```go
 t.Run("tells store to cancel work if request is cancelled", func(t *testing.T) {

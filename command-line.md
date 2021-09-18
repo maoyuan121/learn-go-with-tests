@@ -22,6 +22,8 @@ type PlayerStore interface {
 
 In the previous chapter, we made a `FileSystemPlayerStore` which implements that interface. We should be able to re-use some of this for our new application.
 
+
+
 ## Some project refactoring first
 
 Our project now needs to create two binaries, our existing web server and the command line app.

@@ -113,7 +113,7 @@ If you have declared an `interface` that has many methods, that points to a leak
 
 #### Consolidate dependencies
 
-Here is some code for a `http.HandlerFunc` to handle new user registrations for a website.
+这里是一个 `http.HandlerFunc` 的一些代码，用来处理一个网站的用户注册功能。
 
 ```go
 type User struct {
@@ -140,24 +140,28 @@ func NewRegistrationHandler(userStore UserStore, emailer Emailer) http.HandlerFu
 }
 ```
 
-At first pass it's reasonable to say the design isn't so bad. It only has 2 dependencies!
+设计还不算坏。只有两个依赖！
 
-Re-evaluate the design by considering the handler's responsibilities:
+通过考虑 handler 的职责来重新评估设计:
 
-- Parse the request body into a `User` ✅
-- Use `UserStore` to check if the user exists ❓
-- Use `UserStore` to store the user ❓
+- 将请求体解析到一个 `User` ✅
+- 使用 `UserStore` 检查用户是否已经存在？
+- 使用 `UserStore` 存储用户？
 - Compose an email ❓
-- Use `Emailer` to send the email ❓
-- Return an appropriate http response, depending on success, errors, etc ✅
+- 使用 `Emailer` 发送 email？
+- 返回合适的 http 响应，基于操作成功还是失败 etc ✅
 
-To exercise this code, you're going to have to write many tests with varying degrees of test double setups, spies, etc
+为了测试这些代码，你需要编写许多测试，包括不同程度的测试、双重设置、spies 等
 
-- What if the requirements expand? Translations for the emails? Sending an SMS confirmation too? Does it make sense to you that you have to change a HTTP handler to accommodate this change?
-- Does it feel right that the important rule of "we should send an email" resides within a HTTP handler?
-    - Why do you have to go through the ceremony of creating HTTP requests and reading responses to verify that rule?
+- 如果需求扩展了怎么办？需要翻译 email？需要发送短信确认？您认为必须更改 HTTP 处理程序来适应这种更改有道理吗？
 
-**Listen to your tests**. Writing tests for this code in a TDD fashion should quickly make you feel uncomfortable (or at least, make the lazy developer in you be annoyed). If it feels painful, stop and think.
+- “我们应该发送电子邮件”的重要规则驻留在 HTTP 处理程序中，这感觉对吗?
+    - 为什么您必须通过创建HTTP请求和读取响应来验证该规则?
+
+**Listen to your tests**. Writing tests for this code in a TDD fashion should quickly make you feel uncomfortable (or at least, make the lazy developer in you be annoyed). 
+If it feels painful, stop and think.
+
+以TDD的方式为这些代码编写测试应该很快就会让您感到不舒服(或者至少会让您的懒惰开发人员感到恼火)。如果感觉疼痛，停下来思考。
 
 What if the design was like this instead?
 

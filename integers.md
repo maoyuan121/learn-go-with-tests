@@ -23,15 +23,16 @@ func TestAdder(t *testing.T) {
 }
 ```
 
-You will notice that we're using `%d` as our format strings rather than `%q`. That's because we want it to print an integer rather than a string.
+你将注意到我们使用了 `%d` 用来格式化字符出，而不是用 `%q`。这是因为我们想打印出一个整形而不是字符出。
 
-Also note that we are no longer using the main package, instead we've defined a package named `integers`, as the name suggests this will group functions for working with integers such as `Add`.
+我们不在使用 main package，我们定义了一个名为 `integers` 的包，顾名思义，这将对处理整数的函数进行分组，如 `Add`。
+
 
 ## Try and run the test
 
-Run the test `go test`
+运行测试 `go test`
 
-Inspect the compilation error
+将出现编译错误
 
 `./adder_test.go:6:9: undefined: Add`
 

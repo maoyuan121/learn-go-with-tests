@@ -6,10 +6,10 @@ You have been asked to make a function called `WebsiteRacer` which takes two URL
 
 For this, we will be using
 
-- `net/http` to make the HTTP calls.
-- `net/http/httptest` to help us test them.
+- `net/http` 发起 HTTP 请求
+- `net/http/httptest` 帮助我们测试
 - goroutines.
-- `select` to synchronise processes.
+- `select` 同步 process
 
 ## Write the test first
 
@@ -67,27 +67,30 @@ func Racer(a, b string) (winner string) {
 
 For each URL:
 
-1. We use `time.Now()` to record just before we try and get the `URL`.
-1. Then we use [`http.Get`](https://golang.org/pkg/net/http/#Client.Get) to try and get the contents of the `URL`. This function returns an [`http.Response`](https://golang.org/pkg/net/http/#Response) and an `error` but so far we are not interested in these values.
-1. `time.Since` takes the start time and returns a `time.Duration` of the difference.
+1. 我们使用 `time.Now()` 记录 http 请求的开始时间
+1. 然后我们使用 [`http.Get`](https://golang.org/pkg/net/http/#Client.Get) 发起 http 请求。这个函数返回一个 [`http.Response`](https://golang.org/pkg/net/http/#Response) 
+和一个 `error`，但是我们目前还不关心这些值。
+1. `time.Since` 接收开始时间，返回时间差 `time.Duration`。
 
 Once we have done this we simply compare the durations to see which is the quickest.
 
 ### Problems
 
-This may or may not make the test pass for you. The problem is we're reaching out to real websites to test our own logic.
+测试可能通过，也可能不通过。问题是，我们用真实的网站来测试我们自己的逻辑。
+              
+使用 HTTP 的测试代码是如此普遍，以至于 Go 在标准库中提供了工具来帮助您测试它。
 
-Testing code that uses HTTP is so common that Go has tools in the standard library to help you test it.
-
-In the mocking and dependency injection chapters, we covered how ideally we don't want to be relying on external services to test our code because they can be
-
-- Slow
+在 mocking 和 DI 章节，我们讨论了理想情况下我们不希望依赖外部服务来测试代码，因为它们会
+                  
+- 慢
 - Flaky
 - Can't test edge cases
 
-In the standard library, there is a package called [`net/http/httptest`](https://golang.org/pkg/net/http/httptest/) where you can easily create a mock HTTP server.
+在标准库里，有个叫  [`net/http/httptest`](https://golang.org/pkg/net/http/httptest/) 的包，通过它可以很容易的创建一个 mock HTTP server。
 
-Let's change our tests to use mocks so we have reliable servers to test against that we can control.
+
+让我们更改测试，使用 mock，这样我们就有了可以控制的可靠服务器进行测试。
+
 
 ```go
 func TestRacer(t *testing.T) {
@@ -118,15 +121,18 @@ func TestRacer(t *testing.T) {
 
 The syntax may look a bit busy but just take your time.
 
-`httptest.NewServer` takes an `http.HandlerFunc` which we are sending in via an _anonymous function_.
+`httptest.NewServer` 接收一个 `http.HandlerFunc`，这个方法接收一个 _匿名函数_。
 
-`http.HandlerFunc` is a type that looks like this: `type HandlerFunc func(ResponseWriter, *Request)`.
+`http.HandlerFunc` 是一个类型，大概就是：`type HandlerFunc func(ResponseWriter, *Request)`。
 
 All it's really saying is it needs a function that takes a `ResponseWriter` and a `Request`, which is not too surprising for an HTTP server.
 
-It turns out there's really no extra magic here, **this is also how you would write a _real_ HTTP server in Go**. The only difference is we are wrapping it in an `httptest.NewServer` which makes it easier to use with testing, as it finds an open port to listen on and then you can close it when you're done with your test.
+It turns out there's really no extra magic here, **this is also how you would write a _real_ HTTP server in Go**. 
+The only difference is we are wrapping it in an `httptest.NewServer` which makes it easier to use with testing, 
+as it finds an open port to listen on and then you can close it when you're done with your test.
 
-Inside our two servers, we make the slow one have a short `time.Sleep` when we get a request to make it slower than the other one. Both servers then write an `OK` response with `w.WriteHeader(http.StatusOK)` back to the caller.
+Inside our two servers, we make the slow one have a short `time.Sleep` when we get a request to make it slower than the other one. 
+Both servers then write an `OK` response with `w.WriteHeader(http.StatusOK)` back to the caller.
 
 If you re-run the test it will definitely pass now and should be faster. Play with these sleeps to deliberately break the test.
 
@@ -224,35 +230,37 @@ func ping(url string) chan struct{} {
 
 #### `ping`
 
-We have defined a function `ping` which creates a `chan struct{}` and returns it.
+我们定义了一个 `ping` 函数，它创建一个 `chat struct{}` 并返回它。
 
-In our case, we don't _care_ what type is sent to the channel, _we just want to signal we are done_ and closing the channel works perfectly!
+在我们的例子中，我们不关心是什么东西发送给了 channel，我们只是想要一个信号告诉我们完成了，直接关闭这个 channel 就可以了。
 
-Why `struct{}` and not another type like a `bool`? Well, a `chan struct{}` is the smallest data type available from a memory perspective so we
-get no allocation versus a `bool`. Since we are closing and not sending anything on the chan, why allocate anything?
+为什么是 `struct{}` 而不是其它类，比如 `bool`？，`struct{}` 不占内存。以为我们只需要关闭，而不需要发送任何东西给 channel。
 
-Inside the same function, we start a goroutine which will send a signal into that channel once we have completed `http.Get(url)`.
+在同一个函数里面，我们开始了一个 goroutine，在里面当我们完成了 `http.Get(url)` 后讲发送一个信号给 channel。
 
 ##### Always `make` channels
 
-Notice how we have to use `make` when creating a channel; rather than say `var ch chan struct{}`. When you use `var` the variable will be initialised with the "zero" value of the type. So for `string` it is `""`, `int` it is 0, etc.
+注意我们应该使用 `make` 创建一个 channel；而不是 `var ch chan struct{}`。当你使用 `var` 变量会初始化为这个类型的零值，对于 `string` 是 `"""`，`int` 是 0。
 
-For channels the zero value is `nil` and if you try and send to it with `<-` it will block forever because you cannot send to `nil` channels
+Channel 的零值是 `nil`，如果你尝试对零值的 channel 发送一个东西将永远被阻塞，以为你不能发送东西给 `nil` channel。
 
 [You can see this in action in The Go Playground](https://play.golang.org/p/IIbeAox5jKA)
+
 #### `select`
 
-If you recall from the concurrency chapter, you can wait for values to be sent to a channel with `myVar := <-ch`. This is a _blocking_ call, as you're waiting for a value.
+回顾一下 concurrency 章节，你可以使用 `myVar := <-ch` 来等待发送给 channel 的值。这将阻塞调用，因为你在等待一个值。
 
 What `select` lets you do is wait on _multiple_ channels. The first one to send a value "wins" and the code underneath the `case` is executed.
 
-We use `ping` in our `select` to set up two channels for each of our `URL`s. Whichever one writes to its channel first will have its code executed in the `select`, which results in its `URL` being returned (and being the winner).
+We use `ping` in our `select` to set up two channels for each of our `URL`s. 
+Whichever one writes to its channel first will have its code executed in the `select`, 
+which results in its `URL` being returned (and being the winner).
 
 After these changes, the intent behind our code is very clear and the implementation is actually simpler.
 
 ### Timeouts
 
-Our final requirement was to return an error if `Racer` takes longer than 10 seconds.
+我们最后的需求是如果 `Racer` 花费时间超过 10 秒，那么返回 error。
 
 ## Write the test first
 
@@ -272,7 +280,9 @@ t.Run("returns an error if a server doesn't respond within 10s", func(t *testing
 })
 ```
 
-We've made our test servers take longer than 10s to return to exercise this scenario and we are expecting `Racer` to return two values now, the winning URL (which we ignore in this test with `_`) and an `error`.
+We've made our test servers take longer than 10s to return to exercise this scenario and we are expecting `Racer` to return two values now, 
+the winning URL (which we ignore in this test with `_`) and an `error`.
+
 
 ## Try to run the test
 
@@ -423,3 +433,4 @@ I added one final check on the first test to verify we don't get an `error`.
 
 - A convenient way of creating test servers so you can have reliable and controllable tests.
 - Using the same interfaces as the "real" `net/http` servers which is consistent and less for you to learn.
+

@@ -2,8 +2,7 @@
 
 **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/concurrency)**
 
-Here's the setup: a colleague has written a function, `CheckWebsites`, that
-checks the status of a list of URLs.
+一个同事写了这么个函数 `CheckWebsites`，用来检查列表中 url 的状态。
 
 ```go
 package concurrency
@@ -21,16 +20,13 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 }
 ```
 
-It returns a map of each URL checked to a boolean value - `true` for a good
-response, `false` for a bad response.
+它返回一个 map， key 为 url，值是 boolean 类型，`true` 代表正常响应，`false` 代表非正常响应。
 
-You also have to pass in a `WebsiteChecker` which takes a single URL and returns
-a boolean. This is used by the function to check all the websites.
+你要传递一个 `WebsiteChecker` 它接收一个 url，返回一个 boolean 值。它用来检查网站的状态。
 
-Using [dependency injection][DI] has allowed them to test the function without
-making real HTTP calls, making it reliable and fast.
+使用 [dependency injection][DI] 能让我们测试这个函数，而不要发起真正的 HTTP 请求。
 
-Here's the test they've written:
+我们可以这样写测试代码：
 
 ```go
 package concurrency
@@ -68,14 +64,12 @@ func TestCheckWebsites(t *testing.T) {
 }
 ```
 
-The function is in production and being used to check hundreds of websites. But
-your colleague has started to get complaints that it's slow, so they've asked
-you to help speed it up.
+这个函数是在生成环境中使用过的，检查了上百个网站的状态。但是你的同事开始抱怨变慢了，他们要求你让它搞快点。
 
 ## Write a test
 
-Let's use a benchmark to test the speed of `CheckWebsites` so that we can see the
-effect of our changes.
+
+使用 benchmark 来测试下 `CheckWebsites` 的速度，这样我们可以看到我们修改的效果。
 
 ```go
 package concurrency
@@ -102,12 +96,10 @@ func BenchmarkCheckWebsites(b *testing.B) {
 }
 ```
 
-The benchmark tests `CheckWebsites` using a slice of one hundred urls and uses
-a new fake implementation of `WebsiteChecker`. `slowStubWebsiteChecker` is
-deliberately slow. It uses `time.Sleep` to wait exactly twenty milliseconds and
-then it returns true.
+benchmark 测试 `CheckWebsites` 通过使用一个 `WebsiteChecker` 的 fake 实现，来检查 100 个网址。
+`slowStubWebsiteChecker` 通过 Sleep 故意高慢速度，然后直接返回 true。
 
-When we run the benchmark using `go test -bench=.` (or if you're in Windows Powershell `go test -bench="."`):
+当我们使用 `go test -bench=.`（or if you're in Windows Powershell `go test -bench="."`）：
 
 ```sh
 pkg: github.com/gypsydave5/learn-go-with-tests/concurrency/v0
@@ -119,13 +111,12 @@ ok      github.com/gypsydave5/learn-go-with-tests/concurrency/v0        2.268s
 `CheckWebsites` has been benchmarked at 2249228637 nanoseconds - about two and
 a quarter seconds.
 
-Let's try and make this faster.
+让我们现在来搞快点。
 
 ### Write enough code to make it pass
 
-Now we can finally talk about concurrency which, for the purposes of the
-following, means 'having more than one thing in progress'. This is something
-that we do naturally everyday.
+
+现在我们终于可以讨论并发了，出于 Following 的意思是“有不止一件事情在进行中”。这是我们每天都在自然地做。
 
 For instance, this morning I made a cup of tea. I put the kettle on and then,
 while I was waiting for it to boil, I got the milk out of the fridge, got the
@@ -170,11 +161,7 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 }
 ```
 
-Because the only way to start a goroutine is to put `go` in front of a function
-call, we often use *anonymous functions* when we want to start a goroutine. An
-anonymous function literal looks just the same as a normal function declaration,
-but without a name (unsurprisingly). You can see one above in the body of the
-`for` loop.
+因为要开始一个 goroutine，我们讲 `go` 放在调用函数的开始，在开始一个 goroutine 时我们通常使用 *匿名函数*。
 
 Anonymous functions have a number of features which make them useful, two of
 which we're using above. Firstly, they can be executed at the same time that
