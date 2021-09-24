@@ -4,8 +4,8 @@
 
 It is traditional for your first program in a new language to be [Hello, World](https://en.m.wikipedia.org/wiki/%22Hello,_World!%22_program).
 
-- Create a folder wherever you like
-- Put a new file in it called `hello.go` and put the following code inside it
+- 创建一个你喜欢的目录
+- 在这个目录里创建一个文件 `hello.go`，内容如下
 
 ```go
 package main
@@ -17,21 +17,23 @@ func main() {
 }
 ```
 
-To run it type `go run hello.go`.
+然后运行这个 type `go run hello.go`。
 
 ## How it works
 
-When you write a program in Go you will have a `main` package defined with a `main` func inside it. Packages are ways of grouping up related Go code together.
+当你用 Go 写程序的时候，你会有一个 `main` 包，里面有一个 `main` func。
+包是将相关的 Go 代码组合在一起的方法。
 
-The `func` keyword is how you define a function with a name and a body.
+`func` 关键字用来定义一个函数。
 
-With `import "fmt"` we are importing a package which contains the `Println` function that we use to print.
+通过使用 `import "fmt"` 我们导入了一个包，它里面有一个 `Println` 函数，我们用来打印。
 
 ## How to test
 
-How do you test this? It is good to separate your "domain" code from the outside world \(side-effects\). The `fmt.Println` is a side effect \(printing to stdout\) and the string we send in is our domain.
+你怎么测试这个?将你的“域”代码与外部世界分开是很好的(副作用)。
+`fmt.Println` 是一个副作用\(打印到stdout\)，我们发送的字符串是我们的域。
 
-So let's separate these concerns so it's easier to test
+让我们分离这些问题，以便于测试
 
 ```go
 package main
@@ -47,9 +49,9 @@ func main() {
 }
 ```
 
-We have created a new function again with `func` but this time we've added another keyword `string` in the definition. This means this function returns a `string`.
+我们用 `func` 再次创建了一个新函数，但这次我们在定义中添加了另一个关键字 `string`。这意味着这个函数返回一个 `string`。
 
-Now create a new file called `hello_test.go` where we are going to write a test for our `Hello` function
+现在在创建一个 `hello_test.go` 文件，在这里面我们将为 `Hello` 函数写测试
 
 ```go
 package main
@@ -68,14 +70,18 @@ func TestHello(t *testing.T) {
 
 ## Go modules?
 
-The next step is to run the tests. Enter `go test` in your terminal. If the tests pass, then you are probably using an earlier version of Go. However, if you are using Go 1.16 or later, then the tests will likely not run at all. Instead, you will see an error message like this in the terminal:
+下一步是运行测试。在终端中输入 `go test`。
+如果测试通过，那么您可能使用的是较早版本的 Go。
+但是，如果您使用的是 Go 1.16 或更高版本，那么测试可能根本无法运行。相反，你会在终端中看到这样的错误信息:
 
 ```shell
 $ go test
 go: cannot find main module; see 'go help modules'
 ```
 
-What's the problem? In a word, [modules](https://blog.golang.org/go116-module-changes). Luckily, the problem is easy to fix. Enter `go mod init hello` in your terminal. That will create a new file with the following contents:
+这个是什么问题？简而言之，[modules](https://blog.golang.org/go116-module-changes)。
+幸运的是这个问题很容易修复。在终端输入 `go mod init hello`。
+这将创建一个新的文件，内容如下：
 
 ```go
 module hello
@@ -83,26 +89,31 @@ module hello
 go 1.16
 ```
 
-This file tells the `go` tools essential information about your code. If you planned to distribute your application, you would include where the code was available for download as well as information about dependencies. For now, your module file is minimal, and you can leave it that way. To read more about modules, [you can check out the reference in the Golang documentation](https://golang.org/doc/modules/gomod-ref). We can get back to testing and learning Go now since the tests should run, even on Go 1.16.
+ 
+这个文件告诉 `go` 工具关于代码的基本信息。
+如果您计划分发您的应用程序，您应该包括代码可下载的位置以及关于依赖关系的信息。
+现在，您的模块文件是最小的，您可以保持这种方式。要阅读更多关于模块的内容，[you can check out the reference in the Golang documentation](https://golang.org/doc/modules/gomod-ref)。
+我们现在可以回到测试和学习 Go 了，因为即使在 Go 1.16 上也应该运行测试。
 
-In future chapters you will need to run `go mod init SOMENAME` in each new folder before running commands like `go test` or `go build`.
+在以后的章节中，你需要在运行命令如 `go test` 或 `go build` 之前，在每个新文件夹中运行 `go mod init SOMENAME`。
+
 
 ## Back to Testing
 
-Run `go test` in your terminal. It should've passed! Just to check, try deliberately breaking the test by changing the `want` string.
+在终端中运行 `go test`。它应该已经通过了!只是为了检查，尝试通过改变 `want` 字符串来故意破坏测试。
 
-Notice how you have not had to pick between multiple testing frameworks and then figure out how to install. Everything you need is built in to the language and the syntax is the same as the rest of the code you will write.
+请注意，您不必在多个测试框架之间进行选择，然后找出如何安装。您所需要的一切都内置在语言中，语法与您将编写的其他代码相同。
 
 ### Writing tests
 
-Writing a test is just like writing a function, with a few rules
+编写测试就像编写函数一样，只有一些规则
 
-* It needs to be in a file with a name like `xxx_test.go`
-* The test function must start with the word `Test`
-* The test function takes one argument only `t *testing.T`
-* In order to use the `*testing.T` type, you need to `import "testing"`, like we did with `fmt` in the other file
+* 它需要文件名如 `xxx_test.go`
+* 测试函数必须以 `Test` 开头
+* 测试函数接收一个参数 `t *testing.T`
+* 为了使用 `*testing.T` 类型，你需要 `import "testing"`
 
-For now, it's enough to know that your `t` of type `*testing.T` is your "hook" into the testing framework so you can do things like `t.Fail()` when you want to fail.
+现在，只要知道类型为 `*testing.T` 的 `t` 测试就足够了。`t` 是你进入测试框架的“钩子”，所以当你想要失败时，你可以做像 `t.Fail()` 这样的事情。
 
 We've covered some new topics:
 
@@ -115,15 +126,18 @@ We're declaring some variables with the syntax `varName := value`, which lets us
 
 #### `t.Errorf`
 
-We are calling the `Errorf` _method_ on our `t` which will print out a message and fail the test. The `f` stands for format which allows us to build a string with values inserted into the placeholder values `%q`. When you made the test fail it should be clear how it works.
+我们调用 `t` 的 `Errorf` 方法将会打印一段消息，并且测试失败。
+`f` 代表格式（format），它允许我们构建一个包含插入到占位符 `%q` 中的值的字符串。
 
-You can read more about the placeholder strings in the [fmt go doc](https://golang.org/pkg/fmt/#hdr-Printing). For tests `%q` is very useful as it wraps your values in double quotes.
+你可以在 [fmt go doc](https://golang.org/pkg/fmt/#hdr-Printing) 中阅读关于占位符字符串的更多信息。
+对于测试 `%q` 非常有用，因为它将值包装在双引号中。
 
-We will later explore the difference between methods and functions.
+稍后我们将探讨方法和函数之间的区别。
 
 ### Go doc
 
-Another quality of life feature of Go is the documentation. You can launch the docs locally by running `godoc -http :8000`. If you go to [localhost:8000/pkg](http://localhost:8000/pkg) you will see all the packages installed on your system.
+Another quality of life feature of Go is the documentation. You can launch the docs locally by running `godoc -http :8000`. 
+If you go to [localhost:8000/pkg](http://localhost:8000/pkg) you will see all the packages installed on your system.
 
 The vast majority of the standard library has excellent documentation with examples. Navigating to [http://localhost:8000/pkg/testing/](http://localhost:8000/pkg/testing/) would be worthwhile to see what's available to you.
 

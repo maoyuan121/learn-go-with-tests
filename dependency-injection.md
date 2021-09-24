@@ -2,18 +2,16 @@
 
 **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/di)**
 
-It is assumed that you have read the structs section before as some understanding of interfaces will be needed for this.
+在编程社区中，对于依赖注入有很多误解。希望本指南能告诉你如何做
 
-There is _a lot_ of misunderstandings around dependency injection around the programming community. Hopefully, this guide will show you how
+* 你不需要一个框架
+* 它不会使你的设计过于复杂
+* 它促进测试
+* 它允许您编写伟大的、通用的函数。
 
-* You don't need a framework
-* It does not overcomplicate your design
-* It facilitates testing
-* It allows you to write great, general-purpose functions.
+我们想要编写一个函数来问候某人，就像我们在 hello-world 一章中所做的那样，但这次我们将测试 _actual printing_。
 
-We want to write a function that greets someone, just like we did in the hello-world chapter but this time we are going to be testing the _actual printing_.
-
-Just to recap, here is what that function could look like
+回顾一下，有下面一个函数
 
 ```go
 func Greet(name string) {
@@ -21,15 +19,16 @@ func Greet(name string) {
 }
 ```
 
-But how can we test this? Calling `fmt.Printf` prints to stdout, which is pretty hard for us to capture using the testing framework.
+但我们如何测试呢?调用的 `fmt.Printf` 打印到 stdout，这对于我们使用测试框架来说是相当困难的。
 
-What we need to do is to be able to **inject** \(which is just a fancy word for pass in\) the dependency of printing.
+我们需要做的是能够**注入** \(这只是传递\的一个花哨的词)打印依赖。
 
 **Our function doesn't need to care **_**where**_** or **_**how**_** the printing happens, so we should accept an **_**interface**_** rather than a concrete type.**
 
-If we do that, we can then change the implementation to print to something we control so that we can test it. In "real life" you would inject in something that writes to stdout.
+如果我们这样做，我们就可以将实现改为打印到我们控制的东西，这样我们就可以测试它。
+在“现实生活”中，您将注入一些写入 stdout 的内容。
 
-If you look at the source code of `fmt.Printf` you can see a way for us to hook in
+如果你看一下 `fmt.Printf` 你可以看到一个让我们 hook 的方法
 
 ```go
 // It returns the number of bytes written and any write error encountered.
@@ -38,10 +37,10 @@ func Printf(format string, a ...interface{}) (n int, err error) {
 }
 ```
 
-Interesting! Under the hood `Printf` just calls `Fprintf` passing in `os.Stdout`.
+有意思。`Printf` 里面调用了 `Fprintf`，并且传递进去了一个 `os.Stdout`。
 
-What exactly _is_ an `os.Stdout`? What does `Fprintf` expect to get passed to it for the 1st argument?
-
+`os.Stdout` 到底是什么？`Fprintf` 期望传递给它的第一个参数是什么?
+                  
 ```go
 func Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
 	p := newPrinter()
@@ -52,7 +51,7 @@ func Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
 }
 ```
 
-An `io.Writer`
+一个 `io.Writer`
 
 ```go
 type Writer interface {
@@ -60,9 +59,10 @@ type Writer interface {
 }
 ```
 
-As you write more Go code you will find this interface popping up a lot because it's a great general purpose interface for "put this data somewhere".
+当你编写更多的 Go 代码时，你会发现这个 interface 经常出现，因为它是一个用于“把数据放到某个地方”的通用接口。
 
-So we know under the covers we're ultimately using `Writer` to send our greeting somewhere. Let's use this existing abstraction to make our code testable and more reusable.
+所以我们知道在底层，我们最终会使用 `Writer` 来发送我们的问候。
+让我们使用这个现有的抽象来让我们的代码更可测试和更可重用。
 
 ## Write the test first
 
@@ -80,13 +80,13 @@ func TestGreet(t *testing.T) {
 }
 ```
 
-The `buffer` type from the `bytes` package implements the `Writer` interface.
+`bytes` 包中的 `buffer` 类型实现了 `Writer` 接口。
 
-So we'll use it in our test to send in as our `Writer` and then we can check what was written to it after we invoke `Greet`
+所以我们会在测试中使用它作为 `Writer` 发送然后我们可以在调用 `Greet` 之后检查写入了什么
 
 ## Try and run the test
 
-The test will not compile
+测试编译失败
 
 ```text
 ./di_test.go:10:7: too many arguments in call to Greet
@@ -96,7 +96,7 @@ The test will not compile
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
-_Listen to the compiler_ and fix the problem.
+监听编译器并修复问题。
 
 ```go
 func Greet(writer *bytes.Buffer, name string) {
@@ -106,11 +106,13 @@ func Greet(writer *bytes.Buffer, name string) {
 
 `Hello, Chris di_test.go:16: got '' want 'Hello, Chris'`
 
-The test fails. Notice that the name is getting printed out, but it's going to stdout.
-
+测试失败。注意，名字会被打印出来，但它会被 stdout。
+    
 ## Write enough code to make it pass
 
-Use the writer to send the greeting to the buffer in our test. Remember `fmt.Fprintf` is like `fmt.Printf` but instead takes a `Writer` to send the string to, whereas `fmt.Printf` defaults to stdout.
+在我们的测试中，使用 wrtier 将问候语发送到 buffer。
+记住 `fmt.Fprintf` 就像 `fmt.Printf`，但它接受一个 `Writer` 来发送字符串，
+而 `fmt.Printf` 默认为标准输出。
 
 ```go
 func Greet(writer *bytes.Buffer, name string) {
@@ -118,13 +120,14 @@ func Greet(writer *bytes.Buffer, name string) {
 }
 ```
 
-The test now passes.
+测试现在可以通过了。
 
 ## Refactor
 
-Earlier the compiler told us to pass in a pointer to a `bytes.Buffer`. This is technically correct but not very useful.
+之前编译器告诉我们传入一个指向 `bytes.Buffer` 的指针。这在技术上是正确的，但不是很有用。
 
-To demonstrate this, try wiring up the `Greet` function into a Go application where we want it to print to stdout.
+为了演示这一点，请尝试将 `Greet` 函数连接到 Go 应用程序中，以便将其打印到 stdout。
+
 
 ```go
 func main() {
@@ -134,9 +137,9 @@ func main() {
 
 `./di.go:14:7: cannot use os.Stdout (type *os.File) as type *bytes.Buffer in argument to Greet`
 
-As discussed earlier `fmt.Fprintf` allows you to pass in an `io.Writer` which we know both `os.Stdout` and `bytes.Buffer` implement.
+正如前面讨论的 `fmt.Fprintf` 允许传入一个 `io.Writer`，我们都知道 `os.Stdout` 和 `bytes.Buffer` 实现了它。
 
-If we change our code to use the more general purpose interface we can now use it in both tests and in our application.
+如果我们更改代码以使用更通用的接口，我们现在可以在测试和应用程序中使用它。
 
 ```go
 package main
@@ -158,7 +161,7 @@ func main() {
 
 ## More on io.Writer
 
-What other places can we write data to using `io.Writer`? Just how general purpose is our `Greet` function?
+还有哪些地方可以使用 `io.Writer` 写入数据?我们的 `Greet`功能有多普遍?
 
 ### The internet
 
@@ -191,7 +194,8 @@ Run the program and go to [http://localhost:5000](http://localhost:5000). You'll
 
 HTTP servers will be covered in a later chapter so don't worry too much about the details.
 
-When you write an HTTP handler, you are given an `http.ResponseWriter` and the `http.Request` that was used to make the request. When you implement your server you _write_ your response using the writer.
+When you write an HTTP handler, you are given an `http.ResponseWriter` and the `http.Request` that was used to make the request. 
+When you implement your server you _write_ your response using the writer.
 
 You can probably guess that `http.ResponseWriter` also implements `io.Writer` so this is why we could re-use our `Greet` function inside our handler.
 
