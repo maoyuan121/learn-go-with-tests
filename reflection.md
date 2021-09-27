@@ -4,40 +4,47 @@
 
 [From Twitter](https://twitter.com/peterbourgon/status/1011403901419937792?s=09)
 
-> golang challenge: write a function `walk(x interface{}, fn func(string))` which takes a struct `x` and calls `fn` for all strings fields found inside. difficulty level: recursively.
+> golang挑战：编写一个函数 `walk(x interface{}， fn func(string))`，它接受一个struct `x`，并调用 `fn` 用于所有在其中找到的字符串字段。难度等级:递归。
+  
+要做到这个我们需要使用 _反射_。
 
-To do this we will need to use _reflection_.
-
-> Reflection in computing is the ability of a program to examine its own structure, particularly through types; it's a form of metaprogramming. It's also a great source of confusion.
-
+> 计算机中的反射是程序检查自身结构的能力，特别是通过类型;它是元编程的一种形式。这也是一大困惑之源。
+  
 From [The Go Blog: Reflection](https://blog.golang.org/laws-of-reflection)
 
 ## What is `interface`?
 
-We have enjoyed the type-safety that Go has offered us in terms of functions that work with known types, such as `string`, `int` and our own types like `BankAccount`.
+我们很喜欢 Go 提供的类型安全功能，这些功能可以处理已知类型，如 `string`、`int` 和我们自己的类型，如 `BankAccount`。
 
-This means that we get some documentation for free and the compiler will complain if you try and pass the wrong type to a function.
+这意味着我们可以免费获得一些文档，如果你试图将错误的类型传递给函数，编译器将会报错。
 
-You may come across scenarios though where you want to write a function where you don't know the type at compile time.
+不过，您可能会遇到这样的情况：您想编写一个在编译时不知道类型的函数。
 
-Go lets us get around this with the type `interface{}` which you can think of as just _any_ type.
+Go 让我们用类型 `interface{}` 来解决这个问题，你可以把它看作是 _任何_ 类型。
 
-So `walk(x interface{}, fn func(string))` will accept any value for `x`.
+因此 `walk(x interface{}, fn func(string))` 将接收 `x` 的任何值。
 
-### So why not use `interface` for everything and have really flexible functions?
+### 所以为什么不把 `interface` 用于所有的事情，并拥有真正灵活的功能呢?
 
-- As a user of a function that takes `interface` you lose type safety. What if you meant to pass `Foo.bar` of type `string` into a function but instead did `Foo.baz` which is an `int`? The compiler won't be able to inform you of your mistake. You also have no idea _what_ you're allowed to pass to a function. Knowing that a function takes a `UserService` for instance is very useful.
-- As a writer of such a function, you have to be able to inspect _anything_ that has been passed to you and try and figure out what the type is and what you can do with it. This is done using _reflection_. This can be quite clumsy and difficult to read and is generally less performant (as you have to do checks at runtime).
+- As a user of a function that takes `interface` you lose type safety. 
+What if you meant to pass `Foo.bar` of type `string` into a function but instead did `Foo.baz` which is an `int`? 
+The compiler won't be able to inform you of your mistake. 
+You also have no idea _what_ you're allowed to pass to a function.
+ Knowing that a function takes a `UserService` for instance is very useful.
+- As a writer of such a function, 
+you have to be able to inspect _anything_ that has been passed to you and try and figure out what the type is and what you can do with it. 
+This is done using _reflection_. 
+This can be quite clumsy and difficult to read and is generally less performant (as you have to do checks at runtime).
 
-In short only use reflection if you really need to.
+简而言之，只有在真正需要时才使用反射。
 
-If you want polymorphic functions, consider if you could design it around an interface (not `interface`, confusingly) so that users can use your function with multiple types if they implement whatever methods you need for your function to work.
+如果你想要多态函数，考虑是否可以围绕一个 interface(不是 `interface`，令人困惑)来设计它，这样用户就可以使用多种类型的函数，如果他们实现了任何你需要的方法，让你的函数工作。
 
-Our function will need to be able to work with lots of different things. As always we'll take an iterative approach, writing tests for each new thing we want to support and refactoring along the way until we're done.
+我们的函数需要能够处理许多不同的东西。一如既往，我们将采用迭代的方法，为我们想要支持的每一个新事物编写测试，并在此过程中进行重构，直到完成为止。
 
 ## Write the test first
 
-We'll want to call our function with a struct that has a string field in it (`x`). Then we can spy on the function (`fn`) passed in to see if it is called.
+我们想用一个结构体来调用函数，这个结构体中有一个字符串字段(`x`)。然后我们可以监视传入的函数(`fn`)，看看它是否被调用。
 
 ```go
 func TestWalk(t *testing.T) {
@@ -59,9 +66,12 @@ func TestWalk(t *testing.T) {
 }
 ```
 
-- We want to store a slice of strings (`got`) which stores which strings were passed into `fn` by `walk`. Often in previous chapters, we have made dedicated types for this to spy on function/method invocations but in this case, we can just pass in an anonymous function for `fn` that closes over `got`.
-- We use an anonymous `struct` with a `Name` field of type string to go for the simplest "happy" path.
-- Finally, call `walk` with `x` and the spy and for now just check the length of `got`, we'll be more specific with our assertions once we've got something very basic working.
+- 我们想要存储一个字符串切片(`got`)，它存储通过 `walk` 传递给 `fn` 的字符串。通常在前面的章节中，我们已经为这个做了专门的类型来监视函数/方法调用，
+但在这种情况下，我们可以传递一个匿名函数给 `fn`，它 closes over `got`。
+- 我们使用一个匿名的 `struct`，带有字符串类型的 `Name` 字段，以获得最简单的"快乐"路径。
+- 最后，调用 `walk` 与 `x`，现在只是检查 `got` 的长度，一旦我们有一些非常基本的工作，我们将更具体地使用我们的断言。
+ 
+  
 
 ## Try to run the test
 
@@ -71,7 +81,7 @@ func TestWalk(t *testing.T) {
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
-We need to define `walk`
+我们需要定义 `walk`
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -79,7 +89,7 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-Try and run the test again
+再次运行测试
 
 ```
 === RUN   TestWalk
