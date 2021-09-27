@@ -4,7 +4,8 @@
 
 [In the previous chapter](http-server.md) we created a web server to store how many games players have won.
 
-Our product owner has a new requirement; to have a new endpoint called `/league` which returns a list of all players stored. She would like this to be returned as JSON.
+
+我们的产品所有者有一个新的要求;有一个名为 `/league` 的新端点，它返回存储的所有球员的列表。她希望将其作为 JSON 返回。
 
 ## Here is the code we have so far
 
@@ -90,13 +91,14 @@ func main() {
 }
 ```
 
-You can find the corresponding tests in the link at the top of the chapter.
+您可以在本章顶部的链接中找到相应的测试。
 
-We'll start by making the league table endpoint.
+我们将从联赛积分榜的 endpoint 开始。
 
 ## Write the test first
 
-We'll extend the existing suite as we have some useful test functions and a fake `PlayerStore` to use.
+我们将扩展现有的套件，因为我们有一些有用的测试功能和一个假的 `PlayerStore` 来使用。
+
 
 ```go
 //server_test.go
@@ -115,7 +117,8 @@ func TestLeague(t *testing.T) {
 }
 ```
 
-Before worrying about actual scores and JSON we will try and keep the changes small with the plan to iterate toward our goal. The simplest start is to check we can hit `/league` and get an `OK` back.
+在担心实际分数和 JSON 之前，我们将尝试保持计划的小变化，以迭代达到我们的目标。
+最简单的开始便是检查我们是否能够点击 `/league` 并获得 `OK`。
 
 ## Try to run the test
 
