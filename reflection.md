@@ -100,7 +100,7 @@ FAIL
 
 ## Write enough code to make it pass
 
-We can call the spy with any string to make this pass.
+我们使用任意字符出调用 spy 让测试通过。
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -108,11 +108,11 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-The test should now be passing. The next thing we'll need to do is make a more specific assertion on what our `fn` is being called with.
+现在测试应该是通过了。我们需要做的下一件事是对 `fn` 被调用的对象做一个更具体的断言。
 
 ## Write the test first
 
-Add the following to the existing test to check the string passed to `fn` is correct
+在现有的测试中添加以下内容，以检查传递给 `fn` 的字符串是否正确
 
 ```go
 if got[0] != expected {
@@ -139,24 +139,26 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-This code is _very unsafe and very naive_ but remembers our goal when we are in "red" (the tests failing) is to write the smallest amount of code possible. We then write more tests to address our concerns.
+这段代码非常不安全，也非常幼稚，但是请记住，当我们处于“红色”状态(测试失败)时，我们的目标是尽可能少地编写代码。然后我们编写更多的测试来解决我们所关注的问题。
 
-We need to use reflection to have a look at `x` and try and look at its properties.
+我们需要用反射来看看 `x`，看看它的属性。
 
-The [reflect package](https://godoc.org/reflect) has a function `ValueOf` which returns us a `Value` of a given variable. This has ways for us to inspect a value, including its fields which we use on the next line.
+[reflect package](https://godoc.org/reflect)有一个函数 `ValueOf`，它返回给定变量的 `Value`。它可以让我们检查一个值，包括在下一行中使用的字段。
 
-We then make some very optimistic assumptions about the value passed in
+然后我们对传入的值做一些非常乐观的假设
 
-- We look at the first and only field, there may be no fields at all which would cause a panic
-- We then call `String()` which returns the underlying value as a string but we know it would be wrong if the field was something other than a string.
+- 我们看第一个也是唯一的字段，可能根本没有字段会引起 panic
+- 然后我们调用 `String()`，它返回基础值作为一个字符串，但我们知道，如果字段不是字符串，它将是错误的。
+
 
 ## Refactor
 
-Our code is passing for the simple case but we know our code has a lot of shortcomings.
+我们的代码传递的是简单的情况，但我们知道我们的代码有很多缺点。
 
-We're going to be writing a number of tests where we pass in different values and checking the array of strings that `fn` was called with.
+我们会写一些测试在这里我们传递不同的值并检查调用 `fn` 的字符串数组。
 
-We should refactor our test into a table based test to make this easier to continue testing new scenarios.
+我们应该将测试重构为基于表的测试，以使继续测试新场景变得更容易。
+
 
 ```go
 func TestWalk(t *testing.T) {
@@ -190,11 +192,11 @@ func TestWalk(t *testing.T) {
 }
 ```
 
-Now we can easily add a scenario to see what happens if we have more than one string field.
+现在我们可以很容易地添加一个场景，看看如果有多个字符串字段会发生什么。
 
 ## Write the test first
 
-Add the following scenario to the `cases`.
+将以下场景添加到 `cases` 中。
 
 ```go
 {
@@ -228,13 +230,17 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-`val` has a method `NumField` which returns the number of fields in the value. This lets us iterate over the fields and call `fn` which passes our test.
+`val` 有一个方法 `NumField` ，它返回值中的字段数量。这让我们可以遍历字段并调用 `fn`，从而通过我们的测试。
+
+
 
 ## Refactor
 
-It doesn't look like there's any obvious refactors here that would improve the code so let's press on.
+这里似乎没有任何明显的重构可以改进代码，所以让我们继续。
 
-The next shortcoming in `walk` is that it assumes every field is a `string`. Let's write a test for this scenario.
+`walk` 的下一个缺点是它假定每个字段都是一个 `字符串`。让我们为这个场景编写一个测试。
+
+
 
 ## Write the test first
 
@@ -261,7 +267,7 @@ Add the following case
 
 ## Write enough code to make it pass
 
-We need to check that the type of the field is a `string`.
+我们需要检查字段的类型是否为 `string`。
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -277,17 +283,19 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-We can do that by checking its [`Kind`](https://godoc.org/reflect#Kind).
+我们可以通过查看它的[`Kind`](https://godoc.org/reflect#Kind)来做到这一点。
 
 ## Refactor
 
-Again it looks like the code is reasonable enough for now.
+现在看起来代码已经足够合理了。
 
-The next scenario is what if it isn't a "flat" `struct`? In other words, what happens if we have a `struct` with some nested fields?
+下一个场景是如果它不是一个“扁平的” `struct`呢?换句话说，如果我们有一个带有嵌套字段的 `struct` 会发生什么?
+
+
 
 ## Write the test first
 
-We have been using the anonymous struct syntax to declare types ad-hocly for our tests so we could continue to do that like so
+我们一直在使用匿名结构语法来为我们的测试特别声明类型，所以我们可以继续这样做
 
 ```go
 {
@@ -306,11 +314,11 @@ We have been using the anonymous struct syntax to declare types ad-hocly for our
 },
 ```
 
-But we can see that when you get inner anonymous structs the syntax gets a little messy. [There is a proposal to make it so the syntax would be nicer](https://github.com/golang/go/issues/12854).
+但我们可以看到，当你得到内部匿名结构时语法会有点混乱。[有人提议让它的语法更好](https://github.com/golang/go/issues/12854)。
 
-Let's just refactor this by making a known type for this scenario and reference it in the test. There is a little indirection in that some of the code for our test is outside the test but readers should be able to infer the structure of the `struct` by looking at the initialisation.
+让我们通过为这个场景创建一个已知类型并在测试中引用它来重构它。有一点间接的，我们的测试的一些代码是在测试之外的，但读者应该能够通过查看初始化推断 `struct` 的结构。
 
-Add the following type declarations somewhere in your test file
+在您的测试文件中添加以下类型声明
 
 ```go
 type Person struct {
@@ -324,7 +332,7 @@ type Profile struct {
 }
 ```
 
-Now we can add this to our cases which reads a lot clearer than before
+现在我们可以把这个添加到我们的案例中，比以前更清楚了
 
 ```go
 {
@@ -345,7 +353,7 @@ Now we can add this to our cases which reads a lot clearer than before
         reflection_test.go:54: got [Chris], want [Chris London]
 ```
 
-The problem is we're only iterating on the fields on the first level of the type's hierarchy.
+问题是我们只对类型层次结构的第一级的字段进行迭代。
 
 ## Write enough code to make it pass
 
@@ -367,7 +375,7 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-The solution is quite simple, we again inspect its `Kind` and if it happens to be a `struct` we just call `walk` again on that inner `struct`.
+解决方案很简单，我们再次检查它的 `Kind`，如果它碰巧是 `struct`，我们只在内部 `struct` 调用 `walk`。
 
 ## Refactor
 
@@ -388,9 +396,9 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-When you're doing a comparison on the same value more than once _generally_ refactoring into a `switch` will improve readability and make your code easier to extend.
+当你对同一个值进行多次比较时，一般来说，重构为一个 `switch` 将提高可读性，使代码更容易扩展。
 
-What if the value of the struct passed in is a pointer?
+如果传入的结构体的值是一个指针呢?
 
 ## Write the test first
 
@@ -438,11 +446,12 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-You can't use `NumField` on a pointer `Value`, we need to extract the underlying value before we can do that by using `Elem()`.
+你不能在指针 `Value` 上使用 `NumField`，我们需要在使用 `Elem()` 之前提取底层值。
+
 
 ## Refactor
 
-Let's encapsulate the responsibility of extracting the `reflect.Value` from a given `interface{}` into a function.
+让我们封装提取从给定的 `interface{}` 提取 `reflect.Value` 的职责，将它封装成一个函数。
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -471,12 +480,12 @@ func getValue(x interface{}) reflect.Value {
 }
 ```
 
-This actually adds _more_ code but I feel the abstraction level is right.
+这实际上增加了更多的代码，但我觉得抽象层是正确的。
 
-- Get the `reflect.Value` of `x` so I can inspect it, I don't care how.
-- Iterate over the fields, doing whatever needs to be done depending on its type.
+- 得到 `x` 的 `reflect.Value`，所以我可以检查它，我不在乎怎么检查。
+- 遍历字段，根据其类型执行任何需要执行的操作。
 
-Next, we need to cover slices.
+接下来，我们需要覆盖切片。
 
 ## Write the test first
 
@@ -501,7 +510,8 @@ panic: reflect: call of reflect.Value.NumField on slice Value [recovered]
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
-This is similar to the pointer scenario before, we are trying to call `NumField` on our `reflect.Value` but it doesn't have one as it's not a struct.
+这类似于之前的指针场景，我们试图在 `reflect.Value` 上调用 `NumField`。但它没有，因为它不是 struct。
+
 
 ## Write enough code to make it pass
 
@@ -531,16 +541,16 @@ func walk(x interface{}, fn func(input string)) {
 
 ## Refactor
 
-This works but it's yucky. No worries, we have working code backed by tests so we are free to tinker all we like.
+这个有用，但很恶心。不用担心，我们有测试支持的工作代码，所以我们可以随意修改。
 
-If you think a little abstractly, we want to call `walk` on either
+如果你想得稍微抽象一点，we want to call `walk` on either
 
-- Each field in a struct
-- Each _thing_ in a slice
+- 一个结构中的所有字段
+- slice 中的每个 _thing_ 
 
-Our code at the moment does this but doesn't reflect it very well. We just have a check at the start to see if it's a slice (with a `return` to stop the rest of the code executing) and if it's not we just assume it's a struct.
+我们的代码目前就是这样做的，但并没有很好地反映出来。我们只是在开始时检查它是否是一个切片(用一个 `return` 来停止其余的代码执行)，如果不是，我们就假设它是一个结构。
 
-Let's rework the code so instead we check the type _first_ and then do our work.
+让我们重新编写代码，以先检查类型，然后继续工作。
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -561,9 +571,9 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-Looking much better! If it's a struct or a slice we iterate over its values calling `walk` on each one. Otherwise, if it's a `reflect.String` we can call `fn`.
+看起来好多了!如果它是一个结构体或一个切片，则对其值进行迭代，并对每个值调用 `walk`。否则，如果是 `reflect.String` 我们可以调用 `fn`
 
-Still, to me it feels like it could be better. There's repetition of the operation of iterating over fields/values and then calling `walk` but conceptually they're the same.
+尽管如此，对我来说，感觉还可以更好。这里重复了遍历字段/值的操作，然后调用 `walk`，但概念上它们是相同的。
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -589,20 +599,20 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-If the `value` is a `reflect.String` then we just call `fn` like normal.
+如果 `value` 是一个 `reflect.String`，我们就像平常一样调用 `fn`。
 
-Otherwise, our `switch` will extract out two things depending on the type
+否则，我们的 `switch` 将根据类型提取两个东西
 
-- How many fields there are
-- How to extract the `Value` (`Field` or `Index`)
+- 他们有多少个字段
+- 如何提取 `Value` (`Field` 还是 `Index`)
 
-Once we've determined those things we can iterate through `numberOfValues` calling `walk` with the result of the `getField` function.
+一旦我们确定了这些东西，我们可以通过 `numberOfValues` 调用 `walk` 与 `getField` 函数的结果。
 
-Now we've done this, handling arrays should be trivial.
+现在我们已经完成了这个，处理数组应该是很简单的。
 
 ## Write the test first
 
-Add to the cases
+添加 case
 
 ```go
 {
@@ -625,7 +635,7 @@ Add to the cases
 
 ## Write enough code to make it pass
 
-Arrays can be handled the same way as slices, so just add it to the case with a comma
+可以用与片相同的方式处理数组，所以只需用逗号将它添加到 case 中
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -651,7 +661,7 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-The next type we want to handle is `map`.
+下一个我们向处理的类型是 `map`。
 
 ## Write the test first
 
@@ -676,7 +686,7 @@ The next type we want to handle is `map`.
 
 ## Write enough code to make it pass
 
-Again if you think a little abstractly you can see that `map` is very similar to `struct`, it's just the keys are unknown at compile time.
+再一次，如果你稍微抽象地思考一下，你会发现 `map` 和 `struct` 非常相似，只是键在编译时是未知的。
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -706,15 +716,15 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-However, by design you cannot get values out of a map by index. It's only done by _key_, so that breaks our abstraction, darn.
+但是，按照设计，不能通过索引从映射中获取值。它只能通过 _key_ 完成，这就打破了我们的抽象，该死。
 
 ## Refactor
 
-How do you feel right now? It felt like maybe a nice abstraction at the time but now the code feels a little wonky.
+你现在感觉如何?这在当时可能是一个很好的抽象，但现在代码感觉有点不稳定。
 
-_This is OK!_ Refactoring is a journey and sometimes we will make mistakes. A major point of TDD is it gives us the freedom to try these things out.
+重构是一个过程，有时我们会犯错误。TDD 的一个主要特点是它让我们能够自由地尝试这些东西。
 
-By taking small steps backed by tests this is in no way an irreversible situation. Let's just put it back to how it was before the refactor.
+采取以试验为后盾的小步骤，这绝不是一种不可逆转的局面。让我们回到重构之前的状态。
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -743,13 +753,13 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-We've introduced `walkValue` which DRYs up the calls to `walk` inside our `switch` so that they only have to extract out the `reflect.Value`s from `val`.
+我们已经引入了 `walkValue`，它会在我们的 `switch` 中停止调用 `walk`，这样它们只需要提取从 `val` 提取 `reflect.Value`。
 
 ### One final problem
 
-Remember that maps in Go do not guarantee order. So your tests will sometimes fail because we assert that the calls to `fn` are done in a particular order.
+记住，golang 中的 map 并不保证顺序。所以您的测试有时会失败，因为我们断言调用 `fn` 是按照特定的顺序完成的。
 
-To fix this, we'll need to move our assertion with the maps to a new test where we do not care about the order.
+要解决这个问题，我们需要将带有映射的断言移动到一个新的测试中，在这个测试中我们不关心顺序。
 
 ```go
 t.Run("with maps", func(t *testing.T) {
@@ -768,7 +778,7 @@ t.Run("with maps", func(t *testing.T) {
 })
 ```
 
-Here is how `assertContains` is defined
+`assertContains` 定义如下：
 
 ```go
 func assertContains(t testing.TB, haystack []string, needle string)  {
@@ -785,7 +795,7 @@ func assertContains(t testing.TB, haystack []string, needle string)  {
 }
 ```
 
-The next type we want to handle is `chan`.
+我们下一个想处理的类型是 `chan`。
 
 ## Write the test first
 
@@ -822,7 +832,9 @@ t.Run("with channels", func(t *testing.T) {
 
 ## Write enough code to make it pass
 
-We can iterate through all values sent through channel until it was closed with Recv()
+我们可以遍历所有通过 channel 发送的值，直到它被 `Recv()` 关闭。
+
+
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -854,7 +866,8 @@ func walk(x interface{}, fn func(input string)) {
 	}
 }
 ```
-The next type we want to handle is `func`.
+
+接下来要处理的是类型是 `func`。
 
 ## Write the test first
 
@@ -887,7 +900,7 @@ t.Run("with function", func(t *testing.T) {
 
 ## Write enough code to make it pass
 
-Non zero-argument functions do not seem to make a lot of sense in this scenario. But we should allow for arbitrary return values.
+在这种情况下，非零参数函数似乎没有多大意义。但是我们应该允许任意的返回值。
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -927,8 +940,8 @@ func walk(x interface{}, fn func(input string)) {
 
 ## Wrapping up
 
-- Introduced some of the concepts from the `reflect` package.
-- Used recursion to traverse arbitrary data structures.
-- Did an in retrospect bad refactor but didn't get too upset about it. By working iteratively with tests it's not such a big deal.
-- This only covered a small aspect of reflection. [The Go blog has an excellent post covering more details](https://blog.golang.org/laws-of-reflection).
-- Now that you know about reflection, do your best to avoid using it.
+- 介绍了一些来自 `reflect` 包的东西
+- 使用递归遍历任意数据结构
+- 做了一个事后看来很糟糕的重构，但并没有为此感到太沮丧。通过迭代地使用测试，这并不是什么大问题。
+- 这只是反射的一个小方面。[Go 博客有一篇精彩的文章，内容涉及更多细节](https://blog.golang.org/laws-of-reflection)。
+- 既然您已经了解了反射，就尽量避免使用它。
