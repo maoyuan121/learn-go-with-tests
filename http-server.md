@@ -2,58 +2,58 @@
 
 **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/http-server)**
 
-You have been asked to create a web server where users can track how many games players have won.
+你被要求写一个  web server 可以 用来追踪玩家的输赢情况。
 
--   `GET /players/{name}` should return a number indicating the total number of wins
--   `POST /players/{name}` should record a win for that name, incrementing for every subsequent `POST`
+-   `GET /players/{name}` 返回玩家赢的次数
+-   `POST /players/{name}` 记录玩家赢了一次
 
-We will follow the TDD approach, getting working software as quickly as we can and then making small iterative improvements until we have the solution. By taking this approach we
+我们将遵循 TDD 方法，尽可能快地获得可工作的软件，然后进行小规模的迭代改进，直到我们有了解决方案。通过采用这种方法，我们
 
--   Keep the problem space small at any given time
--   Don't go down rabbit holes
--   If we ever get stuck/lost, doing a revert wouldn't lose loads of work.
+- 在任何给定的时间保持问题空间较小
+- 不进入到未知
+- 如果我们被卡住/迷失了，做一个恢复不会损失大量的工作。
 
 ## Red, green, refactor
 
-Throughout this book, we have emphasised the TDD process of write a test & watch it fail (red), write the _minimal_ amount of code to make it work (green) and then refactor.
+在这本书中，我们强调了 TDD 的过程，即编写一个测试并看着它失败(红色)，编写最小数量的代码使其工作(绿色)，然后重构。
 
-This discipline of writing the minimal amount of code is important in terms of the safety TDD gives you. You should be striving to get out of "red" as soon as you can.
+就 TDD 给您带来的安全性而言，编写最少代码的原则非常重要。你应该努力尽快摆脱“红色”。
 
-Kent Beck describes it as:
+Kent Beck 是这样描述的:
 
-> Make the test work quickly, committing whatever sins necessary in process.
+> 让测试快速进行，在过程中犯任何必要的错误。
 
-You can commit these sins because you will refactor afterwards backed by the safety of the tests.
+您可以犯这些错误，因为您将在测试的安全性支持下进行重构。
 
 ### What if you don't do this?
 
-The more changes you make while in red, the more likely you are to add more problems, not covered by tests.
+红色标记的更改越多，就越有可能添加更多测试没有覆盖的问题。
 
-The idea is to be iteratively writing useful code with small steps, driven by tests so that you don't fall into a rabbit hole for hours.
+这个想法是用小步骤迭代地编写有用的代码，由测试驱动，这样您就不会陷入数小时的兔子洞。
 
 ### Chicken and egg
 
-How can we incrementally build this? We can't `GET` a player without having stored something and it seems hard to know if `POST` has worked without the `GET` endpoint already existing.
+我们如何增量地构建它?我们不能 `GET` 一个玩家没有存储的东西，似乎很难知道 `POST` 是否工作没有 `GET` 端点已经存在。
 
-This is where _mocking_ shines.
+这就是 _mocking_ 的光芒。
 
--   `GET` will need a `PlayerStore` _thing_ to get scores for a player. This should be an interface so when we test we can create a simple stub to test our code without needing to have implemented any actual storage code.
--   For `POST` we can _spy_ on its calls to `PlayerStore` to make sure it stores players correctly. Our implementation of saving won't be coupled to retrieval.
--   For having some working software quickly we can make a very simple in-memory implementation and then later we can create an implementation backed by whatever storage mechanism we prefer.
+- `GET` 将需要一个 `PlayerStore` 为玩家获得分数。这应该是一个接口，所以当我们测试时，我们可以创建一个简单的存根来测试我们的代码，而不需要实现任何实际的存储代码
+- 对于 `POST`，我们可以监听它对 `PlayerStore` 的调用，以确保它正确存储玩家。我们的保存实现不会与检索耦合
+- 为了快速获得一些工作软件，我们可以做一个非常简单的内存实现，然后我们可以创建一个由我们喜欢的任何存储机制支持的实现
 
 ## Write the test first
 
-We can write a test and make it pass by returning a hard-coded value to get us started. Kent Beck refers this as "Faking it". Once we have a working test we can then write more tests to help us remove that constant.
+我们可以编写一个测试，并通过返回一个硬编码的值来启动测试。肯特·贝克(Kent Beck)称之为“Faking it”。一旦我们有了一个可以工作的测试，我们就可以编写更多的测试来帮助我们移除这个常量。
 
-By doing this very small step, we can make the important start of getting an overall project structure working correctly without having to worry too much about our application logic.
+通过完成这个非常小的步骤，我们可以在不需要过多担心应用程序逻辑的情况下，获得一个正确工作的整体项目结构的重要开端。
 
-To create a web server in Go you will typically call [ListenAndServe](https://golang.org/pkg/net/http/#ListenAndServe).
+在 golang 中创建一个  web server 一般是调用 [ListenAndServe](https://golang.org/pkg/net/http/#ListenAndServe)。
 
 ```go
 func ListenAndServe(addr string, handler Handler) error
 ```
 
-This will start a web server listening on a port, creating a goroutine for every request and running it against a [`Handler`](https://golang.org/pkg/net/http/#Handler).
+这将启动一个 web 服务器侦听一个端口，为每个请求创建一个 goroutine，并在 [`Handler`](https://golang.org/pkg/net/http/#Handler) 上运行它。
 
 ```go
 type Handler interface {
@@ -61,9 +61,11 @@ type Handler interface {
 }
 ```
 
-A type implements the Handler interface by implementing the `ServeHTTP` method which expects two arguments, the first is where we _write our response_ and the second is the HTTP request that was sent to the server.
+类型通过实现 `ServeHTTP` 方法来实现 Handler 接口，该方法需要两个参数，第一个是写入 response 的地方，第二个是发送到服务器的 HTTP 请求。
 
-Let's create a file named `server_test.go` and write a test for a function `PlayerServer` that takes in those two arguments. The request sent in will be to get a player's score, which we expect to be `"20"`.
+创建一个文件 `server_test.go`，为 `PlayerServer` 写一个测试，它接收两个参数。发送的请求将得到一个玩家的分数，我们希望是“20”。
+                                                       
+
 ```go
 func TestGETPlayers(t *testing.T) {
 	t.Run("returns Pepper's score", func(t *testing.T) {
@@ -82,10 +84,10 @@ func TestGETPlayers(t *testing.T) {
 }
 ```
 
-In order to test our server, we will need a `Request` to send in and we'll want to _spy_ on what our handler writes to the `ResponseWriter`.
+为了测试我们的服务器，我们将需要一个 `Request` 发送进来，我们想要监视我们的处理器写入 `ResponseWriter` 的内容。
 
--   We use `http.NewRequest` to create a request. The first argument is the request's method and the second is the request's path. The `nil` argument refers to the request's body, which we don't need to set in this case.
--   `net/http/httptest` has a spy already made for us called `ResponseRecorder` so we can use that. It has many helpful methods to inspect what has been written as a response.
+-  我们使用 `http.NewRequest` 创建一个请求。第一个参数是请求方式，第二是请求路径。`nil` 参数代表请求体，在这里我们不需要请求体。
+- `net/http/httptest` 已经为我们做了一个间谍 `ResponseRecorder` 所以我们可以使用它。它有许多有用的方法来检查作为回应所写的内容。
 
 ## Try to run the test
 
@@ -93,9 +95,7 @@ In order to test our server, we will need a `Request` to send in and we'll want 
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
-The compiler is here to help, just listen to it.
-
-Create a file named `server.go` and define `PlayerServer`
+创建一个文件  `server.go`，在其中定义 `PlayerServer`
 
 ```go
 func PlayerServer() {}
@@ -109,7 +109,7 @@ Try again
     want ()
 ```
 
-Add the arguments to our function
+为函数添加参数
 
 ```go
 import "net/http"
@@ -119,7 +119,7 @@ func PlayerServer(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-The code now compiles and the test fails
+现在可以编译了，但是测试还是失败
 
 ```
 === RUN   TestGETPlayers/returns_Pepper's_score
@@ -129,7 +129,8 @@ The code now compiles and the test fails
 
 ## Write enough code to make it pass
 
-From the DI chapter, we touched on HTTP servers with a `Greet` function. We learned that net/http's `ResponseWriter` also implements io `Writer` so we can use `fmt.Fprint` to send strings as HTTP responses.
+从 DI 章节，我们知道了 net/http 的 `ResponseWriter` 实现了 io `Writer`, 因此我们可以使用 `fmt.Fprint` 来发送字符串作为 HTTP 响应。
+                                                                                   
 
 ```go
 func PlayerServer(w http.ResponseWriter, r *http.Request) {
@@ -137,16 +138,17 @@ func PlayerServer(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-The test should now pass.
+现在测试应该能通过了。
 
 ## Complete the scaffolding
 
-We want to wire this up into an application. This is important because
 
--   We'll have _actual working software_, we don't want to write tests for the sake of it, it's good to see the code in action.
--   As we refactor our code, it's likely we will change the structure of the program. We want to make sure this is reflected in our application too as part of the incremental approach.
+我们希望将其连接到应用程序中。这很重要，因为
 
-Create a new `main.go` file for our application and put this code in
+- 我们将拥有实际工作的软件，我们不想为了它而编写测试，看到代码运行是很好的
+- 当我们重构代码时，很可能会改变程序的结构。我们希望确保这也反映在我们的应用程序中，作为增量方法的一部分
+
+为我们的应用创建一个 `main.go` 文件，代码如下
 
 ```go
 package main
@@ -162,9 +164,10 @@ func main() {
 }
 ```
 
-So far all of our application code has been in one file, however, this isn't best practice for larger projects where you'll want to separate things into different files.
+到目前为止，我们所有的应用程序代码都在一个文件中，但是，对于希望将内容分离到不同文件中的大型项目来说，这不是最佳实践。
 
 To run this, do `go build` which will take all the `.go` files in the directory and build you a program. You can then execute it with `./myprogram`.
+
 
 ### `http.HandlerFunc`
 
