@@ -234,7 +234,7 @@ sync/v2/sync_test.go:16: call of assertCounter copies lock value: v1.Counter con
 sync/v2/sync_test.go:39: assertCounter passes lock by value: v1.Counter contains sync.Mutex
 ```
 
-A look at the documentation of [`sync.Mutex`](https://golang.org/pkg/sync/#Mutex) tells us why
+查看 [`sync.Mutex`](https://golang.org/pkg/sync/#Mutex) 文档
 
 > A Mutex must not be copied after first use.
 
@@ -246,8 +246,8 @@ A look at the documentation of [`sync.Mutex`](https://golang.org/pkg/sync/#Mutex
 func assertCounter(t *testing.T, got *Counter, want int)
 ```
 
-Our tests will no longer compile because we are trying to pass in a `Counter` rather than a `*Counter`. 
-To solve this I prefer to create a constructor which shows readers of your API that it would be better to not initialise the type yourself.
+我们的测试将不再编译，因为我们试图传递 `Counter` 而不是 `*Counter`。
+为了解决这个问题，我更喜欢创建一个构造函数，让 API 的读者知道最好不要自己初始化类型。
 
 ```go
 func NewCounter() *Counter {
@@ -255,16 +255,18 @@ func NewCounter() *Counter {
 }
 ```
 
-Use this function in your tests when initialising `Counter`.
+在初始化 `Counter` 时，请在测试中使用此函数。
 
 ## Wrapping up
 
-We've covered a few things from the [sync package](https://golang.org/pkg/sync/)
+我们已经介绍了 [sync package](https://golang.org/pkg/sync/) 中的一些内容
+
+
 
 - `Mutex` 能让我们给我们的数据添加锁
 - `Waitgroup` 表示等待 goroutine 完成
 
-### When to use locks over channels and goroutines?
+### 什么时候在通道和 goroutine 上使用锁?
 
 [We've previously covered goroutines in the first concurrency chapter](concurrency.md) which let us write safe concurrent code so why would you use locks?
 [The go wiki has a page dedicated to this topic; Mutex Or Channel](https://github.com/golang/go/wiki/MutexOrChannel)
@@ -275,8 +277,8 @@ Go 是实用的，它让你使用最能解决问题的工具，而不是强迫�
 
 Paraphrasing:
 
-- **Use channels when passing ownership of data**
-- **Use mutexes for managing state**
+- **在传递数据所有权时使用通道**
+-- **使用 mutexes 来管理状态**
 
 ### go vet
 
@@ -284,6 +286,7 @@ Paraphrasing:
 
 ### 不要因为方便而使用 embedding
 
-- Think about the effect embedding has on your public API.
-- Do you _really_ want to expose these methods and have people coupling their own code to them?
-- With respect to mutexes, this could be potentially disastrous in very unpredictable and weird ways, imagine some nefarious code unlocking a mutex when it shouldn't be; this would cause some very strange bugs that will be hard to track down.
+- 考虑一下内嵌对公共API的影响。
+- 您真的想公开这些方法，并让人们将自己的代码耦合到这些方法上吗?
+- 对于互斥锁来说，这可能会以非常不可预测和奇怪的方式带来潜在的灾难，想象一下一些邪恶的代码在不应该解锁互斥锁的时候解锁它;这将导致一些非常奇怪的错误，将很难跟踪。
+   

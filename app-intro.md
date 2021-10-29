@@ -1,17 +1,17 @@
 # Build an application
 
-Now that you have hopefully digested the _Go Fundamentals_ section you have a solid grounding of a majority of Go's language features and how to do TDD.
+现在，您已经很有希望地消化了 Go 基础部分，您已经对 Go 的大多数语言特性和如何进行 TDD 有了坚实的基础。
 
-This next section will involve building an application.
+下一节将涉及构建应用程序。
 
-Each chapter will iterate on the previous one, expanding the application's functionality as our product owner dictates.
+每一章都将在前一章的基础上进行迭代，按照产品所有者的要求扩展应用程序的功能。
 
-New concepts will be introduced to help facilitate writing great code but most of the new material will be learning what can be accomplished from Go's standard library.
+新概念将被引入，以帮助编写出色的代码，但大多数新材料将学习从 Go 的标准库可以完成什么。
 
-By the end of this you should have a strong grasp as to how to iteratively write an application in Go, backed by tests.
+在这篇文章的最后，您应该对如何在 Go 中迭代地编写应用程序有了一个强有力的掌握，并得到了测试的支持。
 
-- [HTTP server](http-server.md) - We will create an application which listens to HTTP requests and responds to them.
-- [JSON, routing and embedding](json.md) - We will make our endpoints return JSON, explore how to do routing and learn about type embedding.
-- [IO ](io.md) - We will persist and read our data from disk and we'll cover sorting data.
-- [Command line](command-line.md) - We will create a new program leveraging the code we've made so far to make a command line interface. This will involve us restructuring our project to support multiple binaries
-- [Time](time.md) - We will schedule some activities that happen at different times depending on user input. 
+- [HTTP server](http-server.md) - 我们将创建一个侦听 HTTP 请求并响应它们的应用程序。
+- [JSON, routing and embedding](json.md) - 我们将使我们的端点返回 JSON，探索如何做路由和学习类型嵌入。
+- [IO ](io.md) - 我们将持久化并从磁盘读取数据，我们将讨论数据排序。
+- [Command line](command-line.md) - 我们将利用到目前为止所编写的代码创建一个新程序，以创建一个命令行界面。这将涉及到我们重组项目以支持多个二进制文件
+- [Time](time.md) - 我们将根据用户的输入安排一些在不同时间发生的活动。

@@ -2,19 +2,19 @@
 
 不时地回顾你的 TDD 技术并提醒自己要避免的行为是很有必要的。
 
-
 TDD process 在概念上很容易遵循，但当您这样做时，您会发现它对您的设计技能构成了挑战。**不要误以为TDD是困难的，真正困难的是设计!**
 
 本章列出了许多 TDD 和测试反模式，以及如何纠正它们。
 
 ## 根本不做 TDD
 
-Of course, it is possible to write great software without TDD but, 
-a lot of problems I've seen with the design of code and the quality of tests would be very difficult to arrive at if a disciplined approach to TDD had been used.
+当然，没有 TDD 也可以写出优秀的软件，
+如果使用了严格的 TDD 方法，我所看到的代码设计和测试质量方面的许多问题将很难解决。
 
-TDD 的优点之一是，它给你一个正式的过程来分解问题，理解你想要达到的目标(红色)，完成目标(绿色)，然后好好想想如何做对(蓝色/重构)。如果没有这些，这个过程通常是 ad-hoc 的和松散的，这可能会使工程比原来更加困难。
+TDD 的优点之一是，它给你一个正式的过程来分解问题，理解你想要达到的目标(红色)，完成目标(绿色)，然后好好想想如何做对(蓝色/重构)。
+如果没有这些，这个过程通常是 ad-hoc 的和松散的，这可能会使工程比原来更加困难。
 
-## Misunderstanding the constraints of the refactoring step 
+## 误解重构步骤的约束
 
 我参加过许多研讨会、聚会或结对会议，在这些会议中，有人通过了测试，并处于重构阶段。经过一番思考，他们认为把一些代码抽象成一个新的结构体是很好的;一个萌芽中的学究喊道:
 
@@ -24,27 +24,25 @@ TDD 的优点之一是，它给你一个正式的过程来分解问题，理解�
           
 这些测试的目的是给你重构的自由，找到正确的抽象，使代码更容易更改和理解。
 
-## Having tests that won't fail (or, evergreen tests)
+## 拥有不会失败的测试(或常青测试)
 
 这种情况出现的频率令人吃惊。您开始调试或更改一些测试，并意识到：没有这种测试可能失败的情况。或者至少，它不会以测试应该防止的方式失败。
 
 如果你遵循第一步，那么这几乎是不可能的。
 
-> Write a test, see it fail
+> 编写一个测试，看到它失败
 
 当开发人员在编写完代码之后再编写测试时，这几乎总是要做的，并且/或追逐测试覆盖率而不是创建一个有用的测试套件。
 
-## Useless assertions
+## 无用的断言
 
-Ever worked on a system, and you've broken a test, then you see this?
+曾经在一个系统上工作过，但是你失败了一个测试，然后你看到了这个?
 
 > `false was not equal to true`
 
 我知道 false 不等于 true。但是这个是没有任何帮助的信息。它没有告诉我什么东西出错了。这是没有遵循 TDD 过程和没有读取失败错误消息的症状。
 
-Going back to the drawing board,
-
-> Write a test, see it fail (and don't be ashamed of the error message)
+> 编写一个测试，看到它失败了(不要为错误消息感到羞愧)
 
 ## 断言无关的细节
 
@@ -71,36 +69,38 @@ if got != want{
 - 让现有的设计影响您编写测试的方式，而不是考虑所需的行为
 - 对失败测试的错误消息没有给予足够的考虑
 
-## Lots of assertions within a single scenario for unit tests
+## 单元测试的单个场景中有很多断言
 
 许多断言会使测试难以阅读，并且在测试失败时很难调试。
 
-They often creep in gradually, 
-especially if test setup is complicated because you're reluctant to replicate the same horrible setup to assert on something else. 
-Instead of this you should fix the problems in your design which are making it difficult to assert on new things.
+它们通常是慢慢地潜入，
+特别是如果测试设置很复杂，因为您不愿意复制相同的可怕设置来断言其他东西。
+相反，你应该解决设计中的问题，这些问题会让你难以断言新事物。
 
-A helpful rule of thumb is to aim to make one assertion per test. 
-In Go, take advantage of subtests to clearly delineate between assertions on the occasions where you need to. 
-This is also a handy technique to separate assertions on behaviour vs implementation detail.
+一个有用的经验法则是，每次测试都要做一个断言。
+在 Go 中，在需要的情况下，利用子测试来清楚地描述断言之间的关系。
+这也是一种方便的技术来分离行为和实现细节上的断言。
 
-For other tests where setup or execution time may be a constraint (e.g an acceptance test driving a web browser), you need to weigh up the pros and cons of slightly trickier to debug tests against test execution time. 
+对于其他设置或执行时间可能受到限制的测试(例如驱动 web 浏览器的验收测试)，您需要权衡调试测试与测试执行时间之间的利弊。
+
+
 
 ## Not listening to your tests
 
 [Dave Farley in his video "When TDD goes wrong"](https://www.youtube.com/watch?v=UWtEVKVPBQ0&feature=youtu.be) points out,
 
-> TDD gives you the fastest feedback possible on your design
+> TDD 为您的设计提供最快的反馈
 
-From my own experience, a lot of developers are trying to practice TDD but frequently ignore the signals coming back to them from the TDD process. So they're still stuck with fragile, annoying systems, with a poor test suite.
+从我自己的经验来看，许多开发人员试图实践 TDD，但经常忽略 TDD 过程返回给他们的信号。所以他们仍然被脆弱、恼人的系统和糟糕的测试套件所困。
 
-Simply put, if testing your code is difficult, then _using_ your code is difficult too. Treat your tests as the first user of your code and then you'll see if your code is pleasant to work with or not.
+简单地说，如果测试你的代码很困难，那么使用你的代码也很困难。将您的测试视为代码的第一个用户，然后您将看到您的代码是否易于使用。
 
-I've emphasised this a lot in the book, and I'll say it again **listen to your tests**.
+我在书中强调了很多，我再说一遍**听你的测试**。
 
-### Excessive setup, too many test doubles, etc.
+### 过多的设置，太多的测试重复，等等。
 
-Ever looked at a test with 20, 50, 100, 200 lines of setup code before anything interesting in the test happens? 
-Do you then have to change the code and revisit the mess and wish you had a different career?
+在测试中发生任何有趣的事情之前，你是否曾经看过一个有 20,50,100,200 行设置代码的测试?
+然后，你是否不得不修改代码，重新审视混乱的局面，并希望自己有一个不同的职业?
 
 这里的信号是什么?复杂测试 `==` 复杂代码。为什么你的代码很复杂?一定要这样吗?
 
@@ -112,11 +112,11 @@ Do you then have to change the code and revisit the mess and wish you had a diff
 如果你已经声明了一个有很多方法的 `interface`，那就会指向一个有漏洞的抽象。
 考虑如何用一组更统一的方法来定义协作。
 
-#### Think about the types of test doubles you use
+#### 想想你使用的测试类型
 
-- Mocks are sometimes helpful, but they're extremely powerful and therefore easy to misuse. Try giving yourself the constraint of using stubs instead.
-- Verifying implementation detail with spies is sometimes helpful, but try to avoid it. Remember your implementation detail is usually not important, and you don't want your tests coupled to them if possible. Look to couple your tests to **useful behaviour rather than incidental details**.
-- [Read my posts on naming test doubles](https://quii.dev/Start_naming_your_test_doubles_correctly) if the taxonomy of test doubles is a little unclear
+- Mock 有时是有用的，但它们非常强大，因此很容易被误用。试着限制自己使用 stub。
+- 用 spies 验证实现细节有时是有帮助的，但要尽量避免。记住，实现细节通常不重要，如果可能的话，您不希望测试与它们耦合。把你的测试与“有用的行为”联系起来，而不是附带的细节。
+- 如果测试double的分类有点不清楚 [Read my posts on naming test doubles](https://quii.dev/Start_naming_your_test_doubles_correctly) 。
 
 #### Consolidate dependencies
 
@@ -186,7 +186,7 @@ func NewRegistrationHandler(userService UserService) http.HandlerFunc {
 - 测试处理程序很简单
 - 对注册规则的更改与 HTTP 是隔离的，因此测试也更简单
 
-## Violating encapsulation
+## 违反封装
 
 封装非常重要。我们不把包中的所有东西都导出(或公开)是有原因的。
 我们需要具有小表面积的一致性 api，以避免紧密耦合。
@@ -198,10 +198,9 @@ func NewRegistrationHandler(userService UserService) http.HandlerFunc {
 这样做的结果可能是开发人员试图调试一个测试，然后最终意识到被测试的函数只能从 tests 中调用。
 这显然是一个糟糕的结果，也是浪费时间。
 
-In Go, consider your default position for writing tests as _from the perspective of a consumer of your package_. 
-You can make this a compile-time constraint by having your tests live in a test package e.g `package gocoin_test`. 
-If you do this, you'll only have access to the exported members of the package so it won't be possible to couple yourself to implementation detail.
-
+在 Go 中，从包的使用者的角度考虑编写测试的默认位置。
+你可以将你的测试放在一个测试包中，例如 `package gocoin_test`，从而使它成为一个编译时约束。
+如果这样做，您将只能访问包中导出的成员，因此不可能将自己与实现细节耦合在一起。
 
 ## Complicated table tests
 
