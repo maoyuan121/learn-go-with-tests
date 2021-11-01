@@ -512,10 +512,9 @@ $ go test
 
 * Arrays
 * Slices
-  * The various ways to make them
-  * How they have a _fixed_ capacity but you can create new slices from old ones
-    using `append`
-  * How to slice, slices!
+  * 创建 slice 的几种方式
+  * 如何创建一个有固定容量的 slice。但是你可以使用 `append` 从一个 slice 创建一个新的 slice。
+  * 如何对切片进行切片
 * `len` 用来获取数组或者切片的长度
 * Test coverage tool
 * `reflect.DeepEqual` 为什么它很有用，但却会降低代码的类型安全性
@@ -523,12 +522,11 @@ $ go test
 我们已经对整数使用了切片和数组，但它们适用于任何其他类型也包括数组/切片本身。
 所以你可以声明一个变量 `[][]string`，如果需要的话。
 
-[Check out the Go blog post on slices][blog-slice] for an in-depth look into
-slices. Try writing more tests to demonstrate what you learn from reading it.
+想深入了解 slice 请查看[Check out the Go blog post on slices][blog-slice]。
+尝试为 demo 写更多的测试。
 
-Another handy way to experiment with Go other than writing tests is the Go
-playground. You can try most things out and you can easily share your code if
-you need to ask questions. [I have made a go playground with a slice in it for you to experiment with.](https://play.golang.org/p/ICCWcRGIO68)
+除了编写测试之外，另一种方便的使用 Go 的方法是 Go playground。你可以尝试很多东西，你可以很容易地分享你的代码你需要问问题。
+[I have made a go playground with a slice in it for you to experiment with.](https://play.golang.org/p/ICCWcRGIO68)
 
 [Here is an example](https://play.golang.org/p/bTrRmYfNYCp) of slicing an array
 and how changing the slice affects the original array; but a "copy" of the slice
