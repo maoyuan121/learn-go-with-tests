@@ -166,33 +166,32 @@ func main() {
 
 到目前为止，我们所有的应用程序代码都在一个文件中，但是，对于希望将内容分离到不同文件中的大型项目来说，这不是最佳实践。
 
-To run this, do `go build` which will take all the `.go` files in the directory and build you a program. You can then execute it with `./myprogram`.
-
+运行这个，`go build` 将获取目录下所有的 `.go` 文件，然后构建一个程序。然后你可以用 `./myprogram` 来执行它。
 
 ### `http.HandlerFunc`
 
-Earlier we explored that the `Handler` interface is what we need to implement in order to make a server. _Typically_ we do that by creating a `struct` and make it implement the interface by implementing its own ServeHTTP method. However the use-case for structs is for holding data but _currently_ we have no state, so it doesn't feel right to be creating one.
+早些时候，我们探讨了 `Handler` 接口是我们需要实现的以便创建服务器。我们通常是通过创建一个 `struct`，并通过实现 ServeHTTP 方法来实现接口。然而，结构体的用例是用来保存数据的，但是我们目前还没有状态，所以创建一个状态是不对的。
 
-[HandlerFunc](https://golang.org/pkg/net/http/#HandlerFunc) lets us avoid this.
+[HandlerFunc](https://golang.org/pkg/net/http/#HandlerFunc) 能让我们避免这种情况。
 
-> The HandlerFunc type is an adapter to allow the use of ordinary functions as HTTP handlers. If f is a function with the appropriate signature, HandlerFunc(f) is a Handler that calls f.
+> HandlerFunc类型是一个适配器，允许使用普通函数作为 HTTP 处理程序。如果 f 是具有适当签名的函数，则 HandlerFunc(f) 是调用 f 的处理程序。
 
 ```go
 type HandlerFunc func(ResponseWriter, *Request)
 ```
 
-From the documentation, we see that type `HandlerFunc` has already implemented the `ServeHTTP` method.
-By type casting our `PlayerServer` function with it, we have now implemented the required `Handler`.
+从文档中，我们看到类型 `HandlerFunc` 已经实现了 `ServeHTTP` 方法。
+通过类型铸造我们的 `PlayerServer` 函数，我们现在已经实现了所需的 `Handler`。
 
 ### `http.ListenAndServe(":5000"...)`
 
-`ListenAndServe` takes a port to listen on a `Handler`. If there is a problem the web server will return an error, an example of that might be the port already being listened to. For that reason we wrap the call in `log.Fatal` to log the error to the user.
+`ListenAndServe` 需要一个端口来监听 `Handler`。如果出现问题，web 服务器将返回一个错误，一个例子可能是已经被监听的端口。出于这个原因，我们将调用 `log.Fatal` 将错误记录给用户。
 
-What we're going to do now is write _another_ test to force us into making a positive change to try and move away from the hard-coded value.
+我们现在要做的是编写另一个测试来迫使我们做出积极的改变，尝试远离硬编码的值。
 
 ## Write the test first
 
-We'll add another subtest to our suite which tries to get the score of a different player, which will break our hard-coded approach.
+我们将在套件中添加另一个子测试，它试图获取不同玩家的分数，这将破坏我们的硬编码方法。
 
 ```go
 t.Run("returns Floyd's score", func(t *testing.T) {
@@ -210,11 +209,11 @@ t.Run("returns Floyd's score", func(t *testing.T) {
 })
 ```
 
-You may have been thinking
+你可能在想
 
-> Surely we need some kind of concept of storage to control which player gets what score. It's weird that the values seem so arbitrary in our tests.
+> 当然，我们需要一些存储概念来控制玩家获得多少分数。奇怪的是，在我们的测试中，这些值似乎是任意的。
 
-Remember we are just trying to take as small as steps as reasonably possible, so we're just trying to break the constant for now.
+记住，我们只是在尝试尽可能小的步骤，所以我们现在只是试图打破常数。
 
 ## Try to run the test
 
@@ -245,17 +244,17 @@ func PlayerServer(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-This test has forced us to actually look at the request's URL and make a decision. So whilst in our heads, we may have been worrying about player stores and interfaces the next logical step actually seems to be about _routing_.
+这个测试迫使我们查看请求的 URL 并做出决定。所以在我们的脑海中，我们可能一直在担心玩家 store 和界面，而下一个逻辑步骤似乎是关于路由。
 
-If we had started with the store code the amount of changes we'd have to do would be very large compared to this. **This is a smaller step towards our final goal and was driven by tests**.
+如果我们从存储代码开始，那么我们需要做的更改量将比这要大得多。**这是我们朝着最终目标迈出的一小步，是由测试驱动的**。
 
-We're resisting the temptation to use any routing libraries right now, just the smallest step to get our test passing.
+我们现在抵制住了使用任何路由库的诱惑，只是让我们的测试通过的最小步骤。
 
-`r.URL.Path` returns the path of the request which we can then use [`strings.TrimPrefix`](https://golang.org/pkg/strings/#TrimPrefix) to trim away `/players/` to get the requested player. It's not very robust but will do the trick for now.
+`r.URL.Path` 返回请求的路径，然后我们可以使用[`strings.TrimPrefix`](https://golang.org/pkg/strings/#TrimPrefix)修剪掉 `/players/` `以获得请求的玩家。它不是很强大，但目前可以做到。
 
 ## Refactor
 
-We can simplify the `PlayerServer` by separating out the score retrieval into a function
+我们可以通过将分数检索分离到一个函数中来简化 `PlayerServer`
 
 ```go
 //server.go
@@ -278,7 +277,7 @@ func GetPlayerScore(name string) string {
 }
 ```
 
-And we can DRY up some of the code in the tests by making some helpers
+我们可以通过制作一些 helpers 来 DRY 测试中的一些代码
 
 ```go
 //server_test.go
@@ -315,13 +314,13 @@ func assertResponseBody(t testing.TB, got, want string) {
 }
 ```
 
-However, we still shouldn't be happy. It doesn't feel right that our server knows the scores.
+然而，我们仍然不应该快乐。让我们的服务器知道比分感觉不太对。
 
-Our refactoring has made it pretty clear what to do.
+我们的重构已经非常清楚该做什么了。
 
-We moved the score calculation out of the main body of our handler into a function `GetPlayerScore`. This feels like the right place to separate the concerns using interfaces.
+我们将分数计算从处理程序的主体移到了函数 `GetPlayerScore` 中。这似乎是使用接口分离关注点的正确地方。
 
-Let's move our function we re-factored to be an interface instead
+让我们把重构后的函数移到接口
 
 ```go
 type PlayerStore interface {
@@ -329,7 +328,7 @@ type PlayerStore interface {
 }
 ```
 
-For our `PlayerServer` to be able to use a `PlayerStore`, it will need a reference to one. Now feels like the right time to change our architecture so that our `PlayerServer` is now a `struct`.
+为了我们的 `PlayerServer` 能够使用 `PlayerStore`，它将需要一个引用。现在是时候改变我们的架构了，这样我们的 `PlayerServer` 就变成了一个 `struct`。
 
 ```go
 type PlayerServer struct {
@@ -337,7 +336,7 @@ type PlayerServer struct {
 }
 ```
 
-Finally, we will now implement the `Handler` interface by adding a method to our new struct and putting in our existing handler code.
+最后，我们现在将通过向新结构添加一个方法并放入现有的处理程序代码来实现 `Handler` 接口。
 
 ```go
 func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -346,9 +345,9 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-The only other change is we now call our `store.GetPlayerScore` to get the score, rather than the local function we defined (which we can now delete).
+唯一的另一个变化是我们现在调用 `store.GetPlayerScore`，而不是我们定义的本地函数(现在可以删除)。
 
-Here is the full code listing of our server
+下面是完整的代码
 
 ```go
 //server.go
@@ -368,11 +367,13 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 ### Fix the issues
 
-This was quite a few changes and we know our tests and application will no longer compile, but just relax and let the compiler work through it.
+这是相当多的变化，我们知道我们的测试和应用程序将不再编译，放松，让编译器通过它。
 
 `./main.go:9:58: type PlayerServer is not an expression`
 
 We need to change our tests to instead create a new instance of our `PlayerServer` and then call its method `ServeHTTP`.
+
+我们需要修改我们的测试，创建 `PlayerServer` 实例，然后调用它的方法 `ServeHTTP`。
 
 ```go
 //server_test.go
@@ -399,13 +400,13 @@ func TestGETPlayers(t *testing.T) {
 }
 ```
 
-Notice we're still not worrying about making stores _just yet_, we just want the compiler passing as soon as we can.
+注意，我们现在不需要太担心 store，我们只是希望编译器尽快通过。
 
-You should be in the habit of prioritising having code that compiles and then code that passes the tests.
+你应该养成一个习惯，先编译代码，再通过测试。
 
-By adding more functionality (like stub stores) whilst the code isn't compiling, we are opening ourselves up to potentially _more_ compilation problems.
+在代码还没有编译的时候添加更多的功能(比如存根存储)，我们可能会遇到更多的编译问题。
 
-Now `main.go` won't compile for the same reason.
+现在出于同样的原因 `main.go` 也无法编译。
 
 ```go
 func main() {
@@ -414,7 +415,7 @@ func main() {
 }
 ```
 
-Finally, everything is compiling but the tests are failing
+最终，编译通过了但是测试失败。
 
 ```
 === RUN   TestGETPlayers/returns_the_Pepper's_score
@@ -422,7 +423,9 @@ panic: runtime error: invalid memory address or nil pointer dereference [recover
     panic: runtime error: invalid memory address or nil pointer dereference
 ```
 
-This is because we have not passed in a `PlayerStore` in our tests. We'll need to make a stub one up.
+这是因为我们没有在 `PlayerStore` 中通过测试。我们需要做一个存根。
+
+
 
 ```go
 //server_test.go
@@ -436,7 +439,7 @@ func (s *StubPlayerStore) GetPlayerScore(name string) int {
 }
 ```
 
-A `map` is a quick and easy way of making a stub key/value store for our tests. Now let's create one of these stores for our tests and send it into our `PlayerServer`.
+`map` 是为我们的测试创建存根键/值存储的一种快速而简单的方法。现在让我们为我们的测试创建一个 store，并将其发送到我们的 `PlayerServer`。
 
 ```go
 //server_test.go
@@ -469,15 +472,15 @@ func TestGETPlayers(t *testing.T) {
 }
 ```
 
-Our tests now pass and are looking better. The _intent_ behind our code is clearer now due to the introduction of the store. We're telling the reader that because we have _this data in a `PlayerStore`_ that when you use it with a `PlayerServer` you should get the following responses.
+我们的测试现在通过了，看起来好多了。由于引入了store，我们代码背后的意图现在更加清晰了。我们告诉 reader，因为我们在 `PlayerStore` 有 this data，当你使用它与`PlayerServer`，你应该得到以下响应。
 
 ### Run the application
 
-Now our tests are passing the last thing we need to do to complete this refactor is to check if our application is working. The program should start up but you'll get a horrible response if you try and hit the server at `http://localhost:5000/players/Pepper`.
+现在我们的测试已经通过了，要完成这个重构，我们需要做的最后一件事就是检查应用程序是否工作正常。程序应该会启动，但如果你试着访问 `http://localhost:5000/players/Pepper` 上点击服务器，你会得到一个可怕的响应。
 
-The reason for this is that we have not passed in a `PlayerStore`.
+原因是我们没有传递 `PlayerStore`。
 
-We'll need to make an implementation of one, but that's difficult right now as we're not storing any meaningful data so it'll have to be hard-coded for the time being.
+我们需要做一个实现，但现在这是困难的，因为我们没有存储任何有意义的数据，所以它将不得不暂时硬编码。
 
 ```go
 //main.go
@@ -493,19 +496,19 @@ func main() {
 }
 ```
 
-If you run `go build` again and hit the same URL you should get `"123"`. Not great, but until we store data that's the best we can do.
+如果你再次运行 `go build`，并点击相同的 URL，你应该得到 `“123”`。不是很好，但在我们存储数据之前这是我们能做的最好的了。
 
-We have a few options as to what to do next
+关于下一步该做什么，我们有几个选择
 
--   Handle the scenario where the player doesn't exist
--   Handle the `POST /players/{name}` scenario
--   It didn't feel great that our main application was starting up but not actually working. We had to manually test to see the problem.
+-   处理玩家不存在的场景
+-   处理 `POST /players/{name}` 场景
+-   我们的主应用程序启动了，但实际上没有工作，这让人感觉不太好。我们必须手动测试才能发现问题。
 
-Whilst the `POST` scenario gets us closer to the "happy path", I feel it'll be easier to tackle the missing player scenario first as we're in that context already. We'll get to the rest later.
+虽然 `POST` 场景让我们更接近“快乐之路”，但我觉得先解决玩家缺失的场景会更容易，因为我们已经处在这种情境中。剩下的我们稍后再讲。
 
 ## Write the test first
 
-Add a missing player scenario to our existing suite
+在我们现有的套件中添加一个缺失的玩家场景
 
 ```go
 //server_test.go
@@ -545,15 +548,15 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Sometimes I heavily roll my eyes when TDD advocates say "make sure you just write the minimal amount of code to make it pass" as it can feel very pedantic.
+有时候，当 TDD 的支持者说“确保你只写了最少的代码就能通过测试”时，我就会翻白眼，因为这听起来很迂弱。
 
-But this scenario illustrates the example well. I have done the bare minimum (knowing it is not correct), which is write a `StatusNotFound` on **all responses** but all our tests are passing!
+但是这个场景很好地说明了这个示例。我已经做了最低限度(知道它是不正确的)，这是在所有相应中写一个 `StatusNotFound` ，但我们所有的测试都通过了!
 
-**By doing the bare minimum to make the tests pass it can highlight gaps in your tests**. In our case, we are not asserting that we should be getting a `StatusOK` when players _do_ exist in the store.
+**通过最低限度的测试，可以突出测试中的差距**。在我们的例子中，我们并没有断言当玩家在商店中存在时，我们应该获得 `StatusOK`。
 
-Update the other two tests to assert on the status and fix the code.
+更新其他两个测试以断言状态并修复代码。
 
-Here are the new tests
+这是新的测试
 
 ```go
 //server_test.go
@@ -616,9 +619,9 @@ func assertResponseBody(t testing.TB, got, want string) {
 }
 ```
 
-We're checking the status in all our tests now so I made a helper `assertStatus` to facilitate that.
+我们现在在所有的测试中检查状态，所以我做了一个 helper `assertStatus` 来促进这一点。
 
-Now our first two tests fail because of the 404 instead of 200, so we can fix `PlayerServer` to only return not found if the score is 0.
+现在我们的前两个测试失败了，因为 404 而不是 200，所以我们可以修复 `PlayerServer`，只在分数为 0 时返回 not found。
 
 ```go
 //server.go
@@ -637,7 +640,7 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 ### Storing scores
 
-Now that we can retrieve scores from a store it now makes sense to be able to store new scores.
+既然我们可以从存储中检索分数，那么存储新分数就有意义了。
 
 ## Write the test first
 
@@ -660,7 +663,7 @@ func TestStoreWins(t *testing.T) {
 }
 ```
 
-For a start let's just check we get the correct status code if we hit the particular route with POST. This lets us drive out the functionality of accepting a different kind of request and handling it differently to `GET /players/{name}`. Once this works we can then start asserting on our handler's interaction with the store.
+首先，让我们检查一下，如果我们使用 POST 访问特定的路由，我们是否得到了正确的状态代码。这让我们可以抛弃接受不同类型请求和以不同方式处理请求的功能。一旦这个工作完成，我们就可以开始断言处理程序与 store 的交互。
 
 ## Try to run the test
 
@@ -672,7 +675,7 @@ For a start let's just check we get the correct status code if we hit the partic
 
 ## Write enough code to make it pass
 
-Remember we are deliberately committing sins, so an `if` statement based on the request's method will do the trick.
+记住，我们是故意犯错误的，所以一个基于请求方法的 `if` 语句就可以达到目的。
 
 ```go
 //server.go
@@ -697,7 +700,7 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 ## Refactor
 
-The handler is looking a bit muddled now. Let's break the code up to make it easier to follow and isolate the different functionality into new functions.
+handler 现在看起来有点糊涂了。让我们将代码分解，使其更容易理解，并将不同的功能隔离为新功能。
 
 ```go
 //server.go
@@ -729,13 +732,13 @@ func (p *PlayerServer) processWin(w http.ResponseWriter) {
 }
 ```
 
-This makes the routing aspect of `ServeHTTP` a bit clearer and means our next iterations on storing can just be inside `processWin`.
+这使得 `ServeHTTP` 的路由方面更清晰，意味着我们的下一个存储迭代可以只在 `processWin` 里面。
 
-Next, we want to check that when we do our `POST /players/{name}` that our `PlayerStore` is told to record the win.
+接下来，我们要检查当我们执行 `POST /players/{name}`时，`PlayerStore` 是否被告知记录获胜情况。
 
 ## Write the test first
 
-We can accomplish this by extending our `StubPlayerStore` with a new `RecordWin` method and then spy on its invocations.
+我们可以通过扩展我们的 `StubPlayerStore` 与一个新的 `RecordWin` 方法，然后监视它的调用来实现这一点。
 
 ```go
 //server_test.go
@@ -754,7 +757,7 @@ func (s *StubPlayerStore) RecordWin(name string) {
 }
 ```
 
-Now extend our test to check the number of invocations for a start
+现在，首先扩展我们的测试，检查调用的数量
 
 ```go
 //server_test.go
@@ -793,7 +796,7 @@ func newPostWinRequest(name string) *http.Request {
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
-We need to update our code where we create a `StubPlayerStore` as we've added a new field
+我们需要更新我们的代码，我们创建了一个 `StubPlayerStore`，因为我们已经添加了一个新的字段
 
 ```go
 //server_test.go
@@ -811,9 +814,11 @@ store := StubPlayerStore{
 
 ## Write enough code to make it pass
 
-As we're only asserting the number of calls rather than the specific values it makes our initial iteration a little smaller.
+因为我们只断言调用的数量而不是特定的值，所以初始迭代会稍微小一些。
 
-We need to update `PlayerServer`'s idea of what a `PlayerStore` is by changing the interface if we're going to be able to call `RecordWin`.
+我们需要更新 `PlayerServer` 的想法什么是 `PlayerStore` 是通过改变接口，如果我们要能够调用 `RecordWin`。
+
+
 
 ```go
 //server.go
@@ -823,14 +828,14 @@ type PlayerStore interface {
 }
 ```
 
-By doing this `main` no longer compiles
+通过这样做 `main` 不再编译通过
 
 ```
 ./main.go:17:46: cannot use InMemoryPlayerStore literal (type *InMemoryPlayerStore) as type PlayerStore in field value:
     *InMemoryPlayerStore does not implement PlayerStore (missing RecordWin method)
 ```
 
-The compiler tells us what's wrong. Let's update `InMemoryPlayerStore` to have that method.
+编译器告诉我们哪里出错了。让我们更新 `InMemoryPlayerStore` 来拥有那个方法。
 
 ```go
 //main.go
@@ -839,9 +844,9 @@ type InMemoryPlayerStore struct{}
 func (i *InMemoryPlayerStore) RecordWin(name string) {}
 ```
 
-Try and run the tests and we should be back to compiling code - but the test is still failing.
+尝试运行测试，我们应该回到编译代码 —— 但测试仍然失败。
 
-Now that `PlayerStore` has `RecordWin` we can call it within our `PlayerServer`
+现在 `PlayerStore` 中有 `RecordWin` 我们可以在 `PlayerServer` 中调用它
 
 ```go
 //server.go
@@ -851,7 +856,7 @@ func (p *PlayerServer) processWin(w http.ResponseWriter) {
 }
 ```
 
-Run the tests and it should be passing! Obviously `"Bob"` isn't exactly what we want to send to `RecordWin`, so let's further refine the test.
+运行测试，它应该会通过!显然 `Bob` 并不是我们想要发送给 `RecordWin` 的内容，所以让我们进一步完善测试。
 
 ## Write the test first
 
@@ -877,7 +882,7 @@ t.Run("it records wins on POST", func(t *testing.T) {
 })
 ```
 
-Now that we know there is one element in our `winCalls` slice we can safely reference the first one and check it is equal to `player`.
+现在我们知道在我们的 `winCalls` 切片中有一个元素，我们可以安全地引用第一个元素并检查它是否等于 `player`。
 
 ## Try to run the test
 
@@ -898,11 +903,11 @@ func (p *PlayerServer) processWin(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-We changed `processWin` to take `http.Request` so we can look at the URL to extract the player's name. Once we have that we can call our `store` with the correct value to make the test pass.
+我们修改 `processWin` 使得其接收 `http.Request` 这样我们就可以通过 URL 来提取玩家的名字。一旦我们有了这个，我们就可以用正确的值调用 `store`，使测试通过。
 
 ## Refactor
 
-We can DRY up this code a bit as we're extracting the player name the same way in two places
+我们可以用相同的方法在两个地方提取玩家名，从而将代码干化
 
 ```go
 //server.go
@@ -933,25 +938,26 @@ func (p *PlayerServer) processWin(w http.ResponseWriter, player string) {
 }
 ```
 
-Even though our tests are passing we don't really have working software. If you try and run `main` and use the software as intended it doesn't work because we haven't got round to implementing `PlayerStore` correctly. This is fine though; by focusing on our handler we have identified the interface that we need, rather than trying to design it up-front.
+即使我们的测试通过了，我们也没有真正的工作软件。如果你尝试着运行 `main` 并按照预期使用软件，那么它便不会奏效，
+因为我们还没有找到时间去正确执行 `PlayerStore`。这很好;通过关注处理程序，我们已经确定了需要的接口，而不是试图预先设计它。
 
-We _could_ start writing some tests around our `InMemoryPlayerStore` but it's only here temporarily until we implement a more robust way of persisting player scores (i.e. a database).
+我们可以开始围绕我们的 `InMemoryPlayerStore` 编写一些测试，但这只是暂时的，直到我们执行一种更强大的持久化玩家分数的方法(如数据库)。
 
-What we'll do for now is write an _integration test_ between our `PlayerServer` and `InMemoryPlayerStore` to finish off the functionality. This will let us get to our goal of being confident our application is working, without having to directly test `InMemoryPlayerStore`. Not only that, but when we get around to implementing `PlayerStore` with a database, we can test that implementation with the same integration test.
+我们现在要做的是在 `PlayerServer` 和 `InMemoryPlayerStore` 之间编写一个集成测试来完成功能。这将让我们达到确信我们的应用程序正在工作的目标，而不必直接测试 `InMemoryPlayerStore`。不仅如此，当我们使用数据库执行 `PlayerStore` 时，我们还可以使用相同的集成测试来测试该执行。
 
 ### Integration tests
 
-Integration tests can be useful for testing that larger areas of your system work but you must bear in mind:
+集成测试可以用于测试更大范围的系统工作，但您必须记住:
 
--   They are harder to write
--   When they fail, it can be difficult to know why (usually it's a bug within a component of the integration test) and so can be harder to fix
--   They are sometimes slower to run (as they often are used with "real" components, like a database)
+-   它们更难写
+-   当它们失败时，很难知道原因(通常是集成测试组件中的一个 bug)，因此很难修复
+-   有时它们的运行速度较慢(因为它们经常与“真正的”组件一起使用，如数据库)
 
-For that reason, it is recommended that you research _The Test Pyramid_.
+出于这个原因，建议你研究一下“测试金字塔”。
 
 ## Write the test first
 
-In the interest of brevity, I am going to show you the final refactored integration test.
+为了简洁起见，我将向您展示最终的重构集成测试。
 
 ```go
 //server_integration_test.go
@@ -972,9 +978,9 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 }
 ```
 
--   We are creating our two components we are trying to integrate with: `InMemoryPlayerStore` and `PlayerServer`.
--   We then fire off 3 requests to record 3 wins for `player`. We're not too concerned about the status codes in this test as it's not relevant to whether they are integrating well.
--   The next response we do care about (so we store a variable `response`) because we are going to try and get the `player`'s score.
+-   我们正在创建两个试图集成的组件: `InMemoryPlayerStore` 和 `PlayerServer`。
+-   然后我们发出 3 次请求，为 `player` 记录 3 次胜利。我们不太关心这个测试中的状态代码，因为它与它们是否集成良好无关。
+-   我们所关心的下一个响应(所以我们储存了一个变量 `response`)，因为我们将尝试着获得 `player` 的分数。
 
 ## Try to run the test
 
@@ -985,11 +991,11 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 
 ## Write enough code to make it pass
 
-I am going to take some liberties here and write more code than you may be comfortable with without writing a test.
+在这里，我将采取一些自由的做法，编写更多的代码，而您可能不需要编写测试。
 
-_This is allowed_! We still have a test checking things should be working correctly but it is not around the specific unit we're working with (`InMemoryPlayerStore`).
+这是允许的！我们仍然有一个测试，检查事情是否正常工作，但它不是围绕我们正在工作的特定单位(`InMemoryPlayerStore`)。
 
-If I were to get stuck in this scenario, I would revert my changes back to the failing test and then write more specific unit tests around `InMemoryPlayerStore` to help me drive out a solution.
+如果我陷入这种情况，我会将更改恢复到失败的测试，然后围绕 `InMemoryPlayerStore` 编写更具体的单元测试，以帮助我找到解决方案。
 
 ```go
 //in_memory_player_store.go
@@ -1010,16 +1016,16 @@ func (i *InMemoryPlayerStore) GetPlayerScore(name string) int {
 }
 ```
 
--   We need to store the data so I've added a `map[string]int` to the `InMemoryPlayerStore` struct
--   For convenience I've made `NewInMemoryPlayerStore` to initialise the store, and updated the integration test to use it:
+-   我们需要存储数据，所以我添加了一个 `map[string]int` 到 `InMemoryPlayerStore` 结构体
+-   为了方便起见，我设置了 `NewInMemoryPlayerStore` 来初始化商店，并更新了集成测试来使用它:
     ```go
     //server_integration_test.go
     store := NewInMemoryPlayerStore()
     server := PlayerServer{store}
     ```
--   The rest of the code is just wrapping around the `map`
+-   剩下的代码只是围绕着 `map`
 
-The integration test passes, now we just need to change `main` to use `NewInMemoryPlayerStore()`
+集成测试通过了，现在我们只需要改变 `main` 来使用 `NewInMemoryPlayerStore()`
 
 ```go
 //main.go
@@ -1036,47 +1042,47 @@ func main() {
 }
 ```
 
-Build it, run it and then use `curl` to test it out.
+构建它，运行它，然后使用 `curl` 测试它。
 
--   Run this a few times, change the player names if you like `curl -X POST http://localhost:5000/players/Pepper`
--   Check scores with `curl http://localhost:5000/players/Pepper`
+-   运行几次，如果你喜欢 `curl -X POST http://localhost:5000/players/Pepper`，请更改 player 名称
+-   使用 `curl http://localhost:5000/players/Pepper` 检查得分
 
-Great! You've made a REST-ish service. To take this forward you'd want to pick a data store to persist the scores longer than the length of time the program runs.
+太棒了!您已经创建了一个 rest 式服务。要实现这一点，您可能需要选择一个数据存储，以便将分数持久化到比程序运行时间更长的位置。
 
--   Pick a store (Bolt? Mongo? Postgres? File system?)
--   Make `PostgresPlayerStore` implement `PlayerStore`
--   TDD the functionality so you're sure it works
--   Plug it into the integration test, check it's still ok
--   Finally plug it into `main`
+-   选择一个 store (Bolt? Mongo? Postgres? File system?)
+-   使 `PostgresPlayerStore` 实现 `PlayerStore`
+-   对功能进行 TDD，这样你就能确保它能工作
+-   将它插入到集成测试中，检查它是否仍然正常
+-   最后将它插入 `main`
 
 ## Refactor
 
-We are almost there! Lets take some effort to prevent concurrency errors like these
+我们快到了!让我们努力防止类似这样的并发错误
 
 ```
 fatal error: concurrent map read and map write
 ```
 
-By adding mutexes, we enforce concurrency safety especially for the counter in our `RecordWin` function. Read more about mutexes in the sync chapter.
+通过添加互斥锁，我们加强了并发安全性，特别是对于 `RecordWin` 函数中的计数器。有关互斥锁的更多信息，请参阅同步章节。
 
-## Wrapping up
+## 总结
 
 ### `http.Handler`
 
--   Implement this interface to create web servers
--   Use `http.HandlerFunc` to turn ordinary functions into `http.Handler`s
--   Use `httptest.NewRecorder` to pass in as a `ResponseWriter` to let you spy on the responses your handler sends
--   Use `http.NewRequest` to construct the requests you expect to come in to your system
+-   实现这个接口来创建 web 服务器
+-   使用 `http.HandlerFunc` 将普通函数转换为 `http.Handler` 的
+-   使用 `httptest.NewRecorder` 作为 `ResponseWriter` 传入，让您监视处理程序发送的响应
+-   使用 `http.NewRequest` 来构造您希望进入系统的请求
 
 ### Interfaces, Mocking and DI
 
--   Lets you iteratively build the system up in smaller chunks
--   Allows you to develop a handler that needs a storage without needing actual storage
--   TDD to drive out the interfaces you need
+-   让您可以在更小的块中迭代地构建系统
+-   允许您开发需要存储而不需要实际存储的处理程序
+-   TDD来驱动您需要的接口
 
 ### Commit sins, then refactor (and then commit to source control)
 
--   You need to treat having failing compilation or failing tests as a red situation that you need to get out of as soon as you can.
--   Write just the necessary code to get there. _Then_ refactor and make the code nice.
--   By trying to do too many changes whilst the code isn't compiling or the tests are failing puts you at risk of compounding the problems.
--   Sticking to this approach forces you to write small tests, which means small changes, which helps keep working on complex systems manageable.
+-   您需要将编译失败或测试失败视为需要尽快摆脱的红色情况。
+-   只需要编写必要的代码。然后重构代码。
+-   在代码没有编译或测试失败的时候尝试做太多的更改，会使问题复杂化。
+-   坚持这种方法会迫使您编写小的测试，这意味着小的更改，这有助于保持复杂系统的工作可管理。
