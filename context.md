@@ -491,41 +491,51 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-We can see after this that the server code has become simplified as it's no longer explicitly responsible for cancellation, it simply passes through `context` and relies on the downstream functions to respect any cancellations that may occur.
+我们可以看到，在这之后，服务器代码变得简化了，因为它不再显式地负责取消，
+它只是通过 `context`，并依赖于下游功能来尊重任何可能发生的取消。
 
-## Wrapping up
+## 总结
 
 ### What we've covered
 
-- How to test a HTTP handler that has had the request cancelled by the client.
-- How to use context to manage cancellation.
-- How to write a function that accepts `context` and uses it to cancel itself by using goroutines, `select` and channels.
-- Follow Google's guidelines as to how to manage cancellation by propagating request scoped context through your call-stack.
+- 如何测试 client 取消了请求的 HTTP handler。
+- 如何使用 context 管理 cancellation。
+- 如何编写一个函数，接受 `context`，并使用它来通过goroutines， `select` 和通道取消自己。
+- 遵循谷歌关于如何通过调用堆栈传播请求范围上下文来管理取消的指导方针。
 - How to roll your own spy for `http.ResponseWriter` if you need it.
 
 ### What about context.Value ?
 
-[Michal Štrba](https://faiface.github.io/post/context-should-go-away-go2/) and I have a similar opinion.
+[Michal Štrba](https://faiface.github.io/post/context-should-go-away-go2/) 和我有类似的观点。
 
-> If you use ctx.Value in my (non-existent) company, you’re fired
+> 如果你在我的公司使用 ctx.Value，你将被开除
 
-Some engineers have advocated passing values through `context` as it _feels convenient_.
+一些工程师提倡通过 `context` 传递值，因为它感觉方便。
 
-Convenience is often the cause of bad code.
+方便性往往是导致糟糕代码的原因。
 
-The problem with `context.Values` is that it's just an untyped map so you have no type-safety and you have to handle it not actually containing your value. You have to create a coupling of map keys from one module to another and if someone changes something things start breaking.
+`context.Values` 的问题是，它只是一个无类型映射，所以你没有类型安全，你必须处理它，实际上不包含你的值。
+你必须创建一个从一个模块到另一个模块的映射键耦合，如果有人改变了一些东西，就会开始破坏。
 
-In short, **if a function needs some values, put them as typed parameters rather than trying to fetch them from `context.Value`**. This makes it statically checked and documented for everyone to see.
+简而言之，**如果函数需要一些值，将它们作为类型化参数，而不是试图从 `context.Value` 获取它们**。
+这使得每个人都可以静态地检查和记录它。
 
 #### But...
 
-On other hand, it can be helpful to include information that is orthogonal to a request in a context, such as a trace id. Potentially this information would not be needed by every function in your call-stack and would make your functional signatures very messy.
+另一方面，在上下文中包含与请求正交的信息可能会很有帮助，例如 trace id。
+这个信息可能不会被调用堆栈中的每个函数所需要，并且会使函数签名非常混乱。
 
-[Jack Lindamood says **Context.Value should inform, not control**](https://medium.com/@cep21/how-to-correctly-use-context-context-in-go-1-7-8f2c0fafdf39)
+[Jack Lindamood 说 **Context.Value 应该通知，而不是控制**](https://medium.com/@cep21/how-to-correctly-use-context-context-in-go-1-7-8f2c0fafdf39)
 
-> The content of context.Value is for maintainers not users. It should never be required input for documented or expected results.
+> context.Value 是针对维护者而不是用户。它永远不应该被要求输入文件或预期的结果。
+
+
 
 ### Additional material
 
-- I really enjoyed reading [Context should go away for Go 2 by Michal Štrba](https://faiface.github.io/post/context-should-go-away-go2/). His argument is that having to pass `context` everywhere is a smell, that it's pointing to a deficiency in the language in respect to cancellation. He says it would better if this was somehow solved at the language level, rather than at a library level. Until that happens, you will need `context` if you want to manage long running processes.
+- 我真的很喜欢阅读 [Context should go away for Go 2 by Michal Štrba](https://faiface.github.io/post/context-should-go-away-go2/)。
+他的论点是，到处传递 `context` 是一种气味，
+它指出了语言在取消方面的缺陷。
+他说，如果能在语言层面解决这个问题，而不是在库层面，那就更好了。
+在此之前，如果您想管理长时间运行的流程，您将需要 `context`。
 - The [Go blog further describes the motivation for working with `context` and has some examples](https://blog.golang.org/context)

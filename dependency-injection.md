@@ -40,7 +40,7 @@ func Printf(format string, a ...interface{}) (n int, err error) {
 有意思。`Printf` 里面调用了 `Fprintf`，并且传递进去了一个 `os.Stdout`。
 
 `os.Stdout` 到底是什么？`Fprintf` 期望传递给它的第一个参数是什么?
-                  
+
 ```go
 func Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
 	p := newPrinter()
@@ -107,7 +107,7 @@ func Greet(writer *bytes.Buffer, name string) {
 `Hello, Chris di_test.go:16: got '' want 'Hello, Chris'`
 
 测试失败。注意，名字会被打印出来，但它会被 stdout。
-    
+
 ## Write enough code to make it pass
 
 在我们的测试中，使用 wrtier 将问候语发送到 buffer。
@@ -190,33 +190,33 @@ func main() {
 }
 ```
 
-Run the program and go to [http://localhost:5000](http://localhost:5000). You'll see your greeting function being used.
+运行程序，跳转至  [http://localhost:5000](http://localhost:5000)。你将看到 greeting 函数被使用了。
 
-HTTP servers will be covered in a later chapter so don't worry too much about the details.
+HTTP服务器将在后面的章节中介绍，所以不必太担心细节。
 
-When you write an HTTP handler, you are given an `http.ResponseWriter` and the `http.Request` that was used to make the request. 
-When you implement your server you _write_ your response using the writer.
+当你写一个HTTP处理程序时，你会得到一个 `http.ResponseWriter` and the `http.Request`  用于发出请求。
+当你实现你的服务器时，你使用 writer 写入你的响应。
 
-You can probably guess that `http.ResponseWriter` also implements `io.Writer` so this is why we could re-use our `Greet` function inside our handler.
+你可能会猜到 `http.ResponseWriter` 也实现了 `io。Writer`，这就是为什么我们可以在 handler中重用 `Greet` 函数。
 
-## Wrapping up
+## 总结
 
-Our first round of code was not easy to test because it wrote data to somewhere we couldn't control.
+我们的第一轮代码不容易测试，因为它将数据写到我们无法控制的地方。
 
-_Motivated by our tests_ we refactored the code so we could control _where_ the data was written by **injecting a dependency** which allowed us to:
+_受测试的驱动_，我们重构了代码，这样我们就可以通过注入依赖来控制数据写入的位置，这样我们就可以:
 
-* **Test our code** If you can't test a function _easily_, it's usually because of dependencies hard-wired into a function _or_ global state. If you have a global database connection pool for instance that is used by some kind of service layer, it is likely going to be difficult to test and they will be slow to run. DI will motivate you to inject in a database dependency \(via an interface\) which you can then mock out with something you can control in your tests.
-* **Separate our concerns**, decoupling _where the data goes_ from _how to generate it_. If you ever feel like a method/function has too many responsibilities \(generating data _and_ writing to a db? handling HTTP requests _and_ doing domain level logic?\) DI is probably going to be the tool you need.
-* **Allow our code to be re-used in different contexts** The first "new" context our code can be used in is inside tests. But further on if someone wants to try something new with your function they can inject their own dependencies.
+* **测试我们的代码** 如果你不能很容易地测试一个函数，那通常是因为依赖关系硬连接到函数或者全局状态。例如，如果您有一个全局数据库连接池，该连接池被某种服务层使用，那么测试起来可能会很困难，而且运行起来也会很慢。DI 会激发你注入一个数据库依赖项(通过一个接口)，然后你可以用你可以在测试中控制的东西模拟出来。
+* **Separate our concerns**, 解耦数据去哪里和如何生成它。如果你曾经觉得一个方法/函数有太多的责任（生成数据和写入数据库?处理HTTP请求做域级逻辑）DI 可能是你需要的工具。
+* **允许我们的代码在不同的上下文中被重用** 我们的代码可以使用的第一个“新”上下文是在测试内部。但如果有人想在你的函数中尝试一些新的东西，他们可以注入自己的依赖项。
 
 ### What about mocking? I hear you need that for DI and also it's evil
 
-Mocking will be covered in detail later \(and it's not evil\). You use mocking to replace real things you inject with a pretend version that you can control and inspect in your tests. In our case though, the standard library had something ready for us to use.
+Mocking 将在后面详细讨论\(它不邪恶\)。您可以使用 mock 将注入的真实内容替换为可以在测试中控制和检查的模拟版本。在我们的例子中，标准库已经准备好了一些东西供我们使用。
 
-### The Go standard library is really good, take time to study it
+### Go标准库真的很好，花点时间学习一下吧
 
-By having some familiarity with the `io.Writer` interface we are able to use `bytes.Buffer` in our test as our `Writer` and then we can use other `Writer`s from the standard library to use our function in a command line app or in web server.
+通过对  `io.Writer` 接口的一些熟悉，我们能够在我们的测试使用 `bytes.Buffer` 作为我们的 `Writer`，然后我们可以使用其他 `Writer` 从标准库在命令行应用程序或web服务器中使用我们的函数。
 
-The more familiar you are with the standard library the more you'll see these general purpose interfaces which you can then re-use in your own code to make your software reusable in a number of contexts.
+您对标准库越熟悉，就越容易看到这些通用接口，然后您可以在自己的代码中重用这些接口，使您的软件在许多上下文中可重用。
 
-This example is heavily influenced by a chapter in [The Go Programming language](https://www.amazon.co.uk/Programming-Language-Addison-Wesley-Professional-Computing/dp/0134190440), so if you enjoyed this, go buy it!
+这个例子很大程度上受到了 [The Go Programming language](https://www.amazon.co.uk/Programming-Language-Addison-Wesley-Professional-Computing/dp/0134190440)的影响, 如果你喜欢，那就去买吧!

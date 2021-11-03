@@ -64,7 +64,7 @@ type Handler interface {
 类型通过实现 `ServeHTTP` 方法来实现 Handler 接口，该方法需要两个参数，第一个是写入 response 的地方，第二个是发送到服务器的 HTTP 请求。
 
 创建一个文件 `server_test.go`，为 `PlayerServer` 写一个测试，它接收两个参数。发送的请求将得到一个玩家的分数，我们希望是“20”。
-                                                       
+
 
 ```go
 func TestGETPlayers(t *testing.T) {
@@ -130,7 +130,7 @@ func PlayerServer(w http.ResponseWriter, r *http.Request) {
 ## Write enough code to make it pass
 
 从 DI 章节，我们知道了 net/http 的 `ResponseWriter` 实现了 io `Writer`, 因此我们可以使用 `fmt.Fprint` 来发送字符串作为 HTTP 响应。
-                                                                                   
+
 
 ```go
 func PlayerServer(w http.ResponseWriter, r *http.Request) {

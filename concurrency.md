@@ -113,35 +113,23 @@ a quarter seconds.
 
 让我们现在来搞快点。
 
-### Write enough code to make it pass
-
+### 写足够的代码使得测试通过Write enough code to make it pass
 
 现在我们终于可以讨论并发了，出于 Following 的意思是“有不止一件事情在进行中”。这是我们每天都在自然地做。
 
-For instance, this morning I made a cup of tea. I put the kettle on and then,
-while I was waiting for it to boil, I got the milk out of the fridge, got the
-tea out of the cupboard, found my favourite mug, put the teabag into the cup and
-then, when the kettle had boiled, I put the water in the cup.
+例如，今天早上我泡了一杯茶。我把水壶放上，然后，等它煮开的时候，我把牛奶从冰箱里拿出来，拿了把茶从橱柜里拿出来，找到我最喜欢的杯子，把茶包放进杯子里然后，当壶开了，我把水放在杯子里。
 
-What I _didn't_ do was put the kettle on and then stand there blankly staring at
-the kettle until it boiled, then do everything else once the kettle had boiled.
+我没有做的是把水壶放在上面，然后站在那里发呆先把水壶煮开，等它煮开后再做其他的事情。
 
-If you can understand why it's faster to make tea the first way, then you can
-understand how we will make `CheckWebsites` faster. Instead of waiting for
-a website to respond before sending a request to the next website, we will tell
-our computer to make the next request while it is waiting.
+如果你能理解为什么第一种方法泡茶更快，那么你就可以理解我们将如何使 `CheckWebsites` 更快。
+而不是等待一个网站在发送请求到下一个网站之前要做出回应，我们会告诉我们的计算机在等待时，无法发出下一个请求。
 
-Normally in Go when we call a function `doSomething()` we wait for it to return
-(even if it has no value to return, we still wait for it to finish). We say that
-this operation is *blocking* - it makes us wait for it to finish. An operation
-that does not block in Go will run in a separate *process* called a *goroutine*.
-Think of a process as reading down the page of Go code from top to bottom, going
-'inside' each function when it gets called to read what it does. When a separate
-process starts it's like another reader begins reading inside the function,
-leaving the original reader to carry on going down the page.
+通常在 Go 中，当我们调用函数 `doSomething()` 时，我们会等待它返回（即使它没有返回值，我们仍然等待它完成）。我们说这个操作是“阻塞”的 —— 它让我们等待它完成。
+在 Go 中不阻塞的操作将在一个叫做 `goroutine` 的单独的 `process` 中运行。
+把一个进程想象成从上到下阅读 Go 代码页，在每个函数被调用时“进入”每个函数来阅读它做了什么。
+当一个单独的进程启动时，它就像另一个读取器开始读取函数，让原来的读者继续往下看。
 
-To tell Go to start a new goroutine we turn a function call into a `go`
-statement by putting the keyword `go` in front of it: `go doSomething()`.
+为了告诉 Go 开始一个新的 goroutine，我们将一个函数调用转换为一个 `Go` 语句，将关键字 `Go` 放在它前面:`go doSomething()`。
 
 ```go
 package concurrency
@@ -161,19 +149,14 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 }
 ```
 
-因为要开始一个 goroutine，我们讲 `go` 放在调用函数的开始，在开始一个 goroutine 时我们通常使用 *匿名函数*。
+因为要开始一个 goroutine，我们将 `go` 放在调用函数的开始，在开始一个 goroutine 时我们通常使用 *匿名函数*。
 
-Anonymous functions have a number of features which make them useful, two of
-which we're using above. Firstly, they can be executed at the same time that
-they're declared - this is what the `()` at the end of the anonymous function is
-doing. Secondly they maintain access to the lexical scope they are defined in -
-all the variables that are available at the point when you declare the anonymous
-function are also available in the body of the function.
 
-The body of the anonymous function above is just the same as the loop body was
-before. The only difference is that each iteration of the loop will start a new
-goroutine, concurrent with the current process (the `WebsiteChecker` function)
-each of which will add its result to the results map.
+匿名函数有许多特性，这使得它们很有用，我们上面正在使用其中两个。
+首先，它们可以在声明的同时执行 —— 这就是匿名函数末尾的 `()` 所做的。
+其次，它们维护了对定义它们的词法作用域的访问 —— 在声明匿名函数时可用的所有变量在函数体中也可用。
+
+上面的匿名函数体和之前的循环体是一样的。唯一的区别是每次循环迭代都会启动一个新的 goroutine，与当前进程并发( `WebsiteChecker` 函数)每一个都会将其结果添加到结果映射中。
 
 But when we run `go test`:
 
@@ -188,24 +171,20 @@ FAIL    github.com/gypsydave5/learn-go-with-tests/concurrency/v1        0.010s
 
 ### A quick aside into a parallel(ism) universe...
 
-You might not get this result. You might get a panic message that
-we're going to talk about in a bit. Don't worry if you got that, just keep
-running the test until you _do_ get the result above. Or pretend that you did.
-Up to you. Welcome to concurrency: when it's not handled correctly it's hard to
-predict what's going to happen. Don't worry - that's why we're writing tests, to
-help us know when we're handling concurrency predictably.
+你可能得不到这个结果。你可能会得到一个 panic 信息，我们稍后会讲到。
+如果你得到了，不要担心，只要继续运行测试，直到你得到上面的结果。
+或者假装你得到了。欢迎使用并发：如果没有正确处理，就很难预测将会发生什么。
+别担心，这就是我们编写测试的原因，测试将帮助我们知道何时可预测地处理并发。
 
 ### ... and we're back.
 
-We are caught by the original tests `CheckWebsites` is now returning an
-empty map. What went wrong?
+我们在最初的测试中发现 `CheckWebsites` 现在返回的是一个空 map。到底是哪里出了错?
 
-None of the goroutines that our `for` loop started had enough time to add
-their result to the `results` map; the `WebsiteChecker` function is too fast for
-them, and it returns the still empty map.
+我们的 `for` 循环开始的 goroutine 没有足够的时间将它们的结果添加到 `results` 映射中;
+`WebsiteChecker` 函数对他们来说太快了，它返回的仍然是空的 map。
 
-To fix this we can just wait while all the goroutines do their work, and then
-return. Two seconds ought to do it, right?
+
+为了解决这个问题，我们可以等着所有的 goroutines 完成它们的工作，然后再回来。两秒钟就够了，对吧?
 
 ```go
 package concurrency
@@ -239,15 +218,13 @@ exit status 1
 FAIL    github.com/gypsydave5/learn-go-with-tests/concurrency/v1        0.010s
 ```
 
-This isn't great - why only one result? We might try and fix this by increasing
-the time we wait - try it if you like. It won't work. The problem here is that
-the variable `url` is reused for each iteration of the `for` loop - it takes
-a new value from `urls` each time. But each of our goroutines have a reference
-to the `url` variable - they don't have their own independent copy. So they're
-_all_ writing the value that `url` has at the end of the iteration - the last
-url. Which is why the one result we have is the last url.
+这不是很好 —— 为什么只有一个结果？我们可以尝试通过增加等待时间来解决这个问题 —— 如果你喜欢的话，可以尝试一下。
+它不会工作。这里的问题是变量 `url` 在 `for` 循环的每次迭代中都被重用 - 它每次从 `urls` 获取一个新值。
+但是我们的每个 goroutine 都有一个指向 `url` 变量的引用 —— 它们没有自己独立的副本。
+所以他们都在写 `url` 在迭代的最后一个 url 的值。
+这就是为什么我们得到的结果是最后一个url。
 
-To fix this:
+修正：
 
 ```go
 package concurrency
@@ -273,20 +250,18 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 }
 ```
 
-By giving each anonymous function a parameter for the url - `u` - and then
-calling the anonymous function with the `url` as the argument, we make sure that
-the value of `u` is fixed as the value of `url` for the iteration of the loop
-that we're launching the goroutine in. `u` is a copy of the value of `url`, and
-so can't be changed.
+通过给每个匿名函数一个 url 的参数 - `u` - 然后用 `url` 作为参数调用匿名函数，
+我们确保 `u` 的值固定为 `url` 的值，在我们启动 goroutine 的循环的迭代中。
+`u` 是 `url` 值的副本，因此不能更改。
 
-Now if you're lucky you'll get:
+如果你比较幸运将得到下面的结果：
 
 ```sh
 PASS
 ok      github.com/gypsydave5/learn-go-with-tests/concurrency/v1        2.012s
 ```
 
-But if you're unlucky (this is more likely if you run them with the benchmark as you'll get more tries)
+但如果您运气不好（如果您使用基准运行它们，则更有可能出现这种情况，因为您将得到更多的尝试）
 
 ```sh
 fatal error: concurrent map writes
@@ -306,21 +281,17 @@ created by github.com/gypsydave5/learn-go-with-tests/concurrency/v3.WebsiteCheck
         ... many more scary lines of text ...
 ```
 
-This is long and scary, but all we need to do is take a breath and read the
-stacktrace: `fatal error: concurrent map writes`. Sometimes, when we run our
-tests, two of the goroutines write to the results map at exactly the same time.
-Maps in Go don't like it when more than one thing tries to write to them at
-once, and so `fatal error`.
+这很长很吓人，但我们所需要做的就是深呼吸并阅读 stacktrace: `fatal error: concurrent map write`。
+有时候，当我们运行我们的测试时，两个 goroutine 在完全相同的时间写入结果 map。
+golang 中的 map 不喜欢同时有多个东西试图向它写入，所以这是 `fatal error`。
 
-This is a _race condition_, a bug that occurs when the output of our software is
-dependent on the timing and sequence of events that we have no control over.
-Because we cannot control exactly when each goroutine writes to the results map,
-we are vulnerable to two goroutines writing to it at the same time.
+这是一个 _race condition_，当我们的软件输出时发生的错误取决于我们无法控制的事件的时间和顺序。
+因为我们不能准确地控制每个 goroutine 写入结果 map 的时间， 我们很容易受到两个 goroutines 同时向它写入的攻击。
 
-Go can help us to spot race conditions with its built in [_race detector_][godoc_race_detector].
-To enable this feature, run the tests with the `race` flag: `go test -race`.
+Go 可以通过其内置的 [_race detector_][godoc_race_detector] 帮助我们发现 race conditions。
+要启用此功能，请使用 `race` 标志运行测试: `go test -race`。
 
-You should get some output that looks like this:
+你应该得到如下的输出:
 
 ```sh
 ==================
@@ -355,37 +326,32 @@ Goroutine 7 (finished) created at:
 ==================
 ```
 
-The details are, again, hard to read - but `WARNING: DATA RACE` is pretty
-unambiguous. Reading into the body of the error we can see two different
-goroutines performing writes on a map:
+细节也很难读懂，但是 `WARNING: DATA RACE` 是非常明确的。
+从错误体中读取，我们可以看到两个不同的 goroutine 在 map 上执行写操作:
 
 `Write at 0x00c420084d20 by goroutine 8:`
 
-is writing to the same block of memory as
+写到相同的内存块
 
 `Previous write at 0x00c420084d20 by goroutine 7:`
 
-On top of that we can see the line of code where the write is happening:
+在上面，我们可以看到写代码的代码行:
 
 `/Users/gypsydave5/go/src/github.com/gypsydave5/learn-go-with-tests/concurrency/v3/websiteChecker.go:12`
 
-and the line of code where goroutines 7 an 8 are started:
+以及 goroutines 7 和 8 开始的那行代码:
 
 `/Users/gypsydave5/go/src/github.com/gypsydave5/learn-go-with-tests/concurrency/v3/websiteChecker.go:11`
 
-Everything you need to know is printed to your terminal - all you have to do is
-be patient enough to read it.
+你需要知道的一切都打印到你的终端上了 —— 你所要做的就是有足够的耐心去阅读它。
 
 ### Channels
 
-We can solve this data race by coordinating our goroutines using _channels_.
-Channels are a Go data structure that can both receive and send values. These
-operations, along with their details, allow communication between different
-processes.
+我们可以通过使用 _channels_ 协调 goroutine 来解决这个 data race。
+通道是一种可以接收和发送值的 Go 数据结构。
+这些操作及其细节允许不同进程之间进行通信。
 
-In this case we want to think about the communication between the parent process
-and each of the goroutines that it makes to do the work of running the
-`WebsiteChecker` function with the url.
+在本例中，我们想要考虑父进程和它创建的每一个 goroutine 之间的通信。
 
 ```go
 package concurrency
@@ -415,49 +381,37 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 }
 ```
 
-Alongside the `results` map we now have a `resultChannel`, which we `make` in
-the same way. `chan result` is the type of the channel - a channel of `result`.
-The new type, `result` has been made to associate the return value of the
-`WebsiteChecker` with the url being checked - it's a struct of `string` and
-`bool`. As we don't need either value to be named, each of them is anonymous
-within the struct; this can be useful in when it's hard to know what to name
-a value.
+在 `results` map 旁边，我们现在有一个 `resultChannel`，我们用同样的方法 `make` 它。
+`chan result` 是通道类型 - a channel of `result`.
+新的类型，`result` 已经被用来关联 `WebsiteChecker` 的返回值与被检查的url - 它是 `string` 和 `bool` 结构体。
+因为我们不需要对这两个值进行命名，所以它们在结构中都是匿名的;当很难知道该命名什么时，这可能很有用一个值。
 
-Now when we iterate over the urls, instead of writing to the `map` directly
-we're sending a `result` struct for each call to `wc` to the `resultChannel`
-with a _send statement_. This uses the `<-` operator, taking a channel on the
-left and a value on the right:
+现在，当我们遍历 url 时，不是直接写入 `map` 而是使用 _send statement_ 为每次调用 `wc` 将 `result` 结构发送给 `resultChannel`。
+这使用了 `<-` 操作符，在左边取一个通道，在右边取一个值:
 
 ```go
 // Send statement
 resultChannel <- result{u, wc(u)}
 ```
 
-The next `for` loop iterates once for each of the urls. Inside we're using
-a _receive expression_, which assigns a value received from a channel to
-a variable. This also uses the `<-` operator, but with the two operands now
-reversed: the channel is now on the right and the variable that
-we're assigning to is on the left:
+下一个 `for` 循环为每个 url 迭代一次。
+在内部，我们使用了 _receive expression_，它将从通道接收到的值赋给一个变量。
+这也使用了 `<-` 操作符，但现在两个操作数是相反的:通道现在在右边，而要赋值的变量在左边:
 
 ```go
 // Receive expression
 r := <-resultChannel
 ```
 
-We then use the `result` received to update the map.
+然后我们使用收到的 `result` 来更新 map。
 
-By sending the results into a channel, we can control the timing of each write
-into the results map, ensuring that it happens one at a time. Although each of
-the calls of `wc`, and each send to the result channel, is happening in parallel
-inside its own process, each of the results is being dealt with one at a time as
-we take values out of the result channel with the receive expression.
+通过将结果发送到一个通道，我们可以控制每次写入 results 映射的时间，确保每次写入一个结果。
+尽管每次调用 `wc` 和每次发送到结果通道，在它自己的进程中并行地发生，当我们用接收表达式从结果通道中取值时，每个结果都会被一次处理一个。
 
-We have parallelized the part of the code that we wanted to make faster, while
-making sure that the part that cannot happen in parallel still happens linearly.
-And we have communicated across the multiple processes involved by using
-channels.
+我们已经并行化了我们想让代码更快的部分，同时确保不能并行发生的部分仍然线性发生。
+我们已经通过使用通道在涉及的多个进程之间进行了通信。
 
-When we run the benchmark:
+运行 benchmark：
 
 ```sh
 pkg: github.com/gypsydave5/learn-go-with-tests/concurrency/v2
@@ -468,40 +422,33 @@ ok      github.com/gypsydave5/learn-go-with-tests/concurrency/v2        2.377s
 23406615 nanoseconds - 0.023 seconds, about one hundred times as fast as
 original function. A great success.
 
-## Wrapping up
+## 总结
 
-This exercise has been a little lighter on the TDD than usual. In a way we've
-been taking part in one long refactoring of the `CheckWebsites` function; the
-inputs and outputs never changed, it just got faster. But the tests we had in
-place, as well as the benchmark we wrote, allowed us to refactor `CheckWebsites`
-in a way that maintained confidence that the software was still working, while
-demonstrating that it had actually become faster.
+这个练习在 TDD 上比通常要轻一些。
+在某种程度上，我们参与了对 `CheckWebsites` 的长重构;
+输入和输出没有变，只是变快了。
+但我们的测试，以及我们编写的基准，允许我们重构 `CheckWebsites`，以保持软件仍在工作的信心，同时证明它实际上变得更快了。
 
-In making it faster we learned about
+为了让它更快，我们学到了
 
-- *goroutines*, the basic unit of concurrency in Go, which let us check more
-  than one website at the same time.
-- *anonymous functions*, which we used to start each of the concurrent processes
-  that check websites.
-- *channels*, to help organize and control the communication between the
-  different processes, allowing us to avoid a *race condition* bug.
-- *the race detector* which helped us debug problems with concurrent code
+- *goroutines*, Go 中并发的基本单元，它让我们可以同时查看多个网站。
+- *anonymous functions*, 我们用它来启动每个检查网站的并发进程。
+- *channels*, 帮助组织和控制不同进程之间的通信，使我们避免*竞争条件*错误。
+- *the race detector* 它帮助我们调试并发代码的问题
 
 ### Make it fast
 
-One formulation of an agile way of building software, often misattributed to Kent
-Beck, is:
+一种构建软件的敏捷方法经常被误认为是 KentBeck 提出的:
 
 > [Make it work, make it right, make it fast][wrf]
 
-Where 'work' is making the tests pass, 'right' is refactoring the code, and
-'fast' is optimizing the code to make it, for example, run quickly. We can only
-'make it fast' once we've made it work and made it right. We were lucky that the
-code we were given was already demonstrated to be working, and didn't need to be
-refactored. We should never try to 'make it fast' before the other two steps
-have been performed because
+“工作”是让测试通过，“正确”是重构代码，
+“快速”是指优化代码，使之快速运行。
+只有当我们让它运转并正确时，我们才能“让它快速运转”。
+我们很幸运，我们得到的代码已经被证明是有效的，而且不需要重构。
+我们永远不应该在其他两个步骤完成之前就试图快速完成，因为
 
-> [Premature optimization is the root of all evil][popt]
+> [过早的优化是万恶之源][popt]
 > -- Donald Knuth
 
 [DI]: dependency-injection.md
