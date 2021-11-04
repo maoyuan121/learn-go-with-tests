@@ -136,19 +136,22 @@ github.com/quii/learn-go-with-tests/json-and-io/v2.(*PlayerServer).ServeHTTP(0xc
     /Users/quii/go/src/github.com/quii/learn-go-with-tests/json-and-io/v2/server.go:20 +0xec
 ```
 
-Your `PlayerServer` should be panicking like this. Go to the line of code in the stack trace which is pointing to `server.go`.
+你的 `PlayerServer` 应该像这样 panic。转到堆栈跟踪中指向 `server.go` 的那行代码。
+
+
 
 ```go
 player := r.URL.Path[len("/players/"):]
 ```
 
-In the previous chapter, we mentioned this was a fairly naive way of doing our routing. What is happening is it's trying to split the string of the path starting at an index beyond `/league` so it is `slice bounds out of range`.
+在前一章中，我们提到过这是一种非常简单的路由方式。
+它试图分割路径的字符串从 `/league` `以外的索引开始所以它是 `slice bounds out of range`。
 
 ## Write enough code to make it pass
 
-Go has a built-in routing mechanism called [`ServeMux`](https://golang.org/pkg/net/http/#ServeMux) (request multiplexer) which lets you attach `http.Handler`s to particular request paths.
+Go 有一个内置的路由机制叫 [`ServeMux`](https://golang.org/pkg/net/http/#ServeMux)(请求多路复用器)，它允许你附加 `http.Handler` 到特定的请求路径。
 
-Let's commit some sins and get the tests passing in the quickest way we can, knowing we can refactor it with safety once we know the tests are passing.
+让我们犯一些错误，以最快的方式通过测试，知道一旦我们知道测试通过了，我们就可以安全地重构它。
 
 ```go
 //server.go
@@ -175,16 +178,16 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-- When the request starts we create a router and then we tell it for `x` path use `y` handler.
-- So for our new endpoint, we use `http.HandlerFunc` and an _anonymous function_ to `w.WriteHeader(http.StatusOK)` when `/league` is requested to make our new test pass.
-- For the `/players/` route we just cut and paste our code into another `http.HandlerFunc`.
-- Finally, we handle the request that came in by calling our new router's `ServeHTTP` (notice how `ServeMux` is _also_ an `http.Handler`?)
+- 当请求开始时，我们创建一个路由器，然后我们告诉它对于 `x` 路径使用 `y` 处理器。
+- 对于新端点，我们使用  `http.HandlerFunc` 和匿名函数来 `w.WriteHeader(http.StatusOK)` 当 `/league` 被请求使我们的新测试通过。
+- 对于 `/players/` 路径，我们只是剪切并粘贴我们的代码到另一个 `http.HandlerFunc`。
+- 最后，我们通过调用新路由器的 `ServeHTTP` 来处理请求(注意 `ServeMux` 如何也是一个 `http.Handler` ?)
 
-The tests should now pass.
+测试现在应该能通过了。
 
 ## Refactor
 
-`ServeHTTP` is looking quite big, we can separate things out a bit by refactoring our handlers into separate methods.
+`ServerHttp` 现在看起来有点大，我们可以通过将处理程序重构为单独的方法来将事情分开。
 
 ```go
 //server.go
@@ -213,7 +216,9 @@ func (p *PlayerServer) playersHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-It's quite odd (and inefficient) to be setting up a router as a request comes in and then calling it. What we ideally want to do is have some kind of `NewPlayerServer` function which will take our dependencies and do the one-time setup of creating the router. Each request can then just use that one instance of the router.
+当请求传入时设置一个路由器，然后调用它，这很奇怪(而且效率低)。理想情况下，我们想要做的是有某种 `NewPlayerServer` 函数，它会取走我们的依赖并做创建路由器的一次性设置。然后，每个请求就可以只使用路由器的一个实例。
+
+
 
 ```go
 //server.go
@@ -239,13 +244,13 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-- `PlayerServer` now needs to store a router.
-- We have moved the routing creation out of `ServeHTTP` and into our `NewPlayerServer` so this only has to be done once, not per request.
-- You will need to update all the test and production code where we used to do `PlayerServer{&store}` with `NewPlayerServer(&store)`.
+- `PlayerServer` 现在需要一个 router
+- 我们已经将路由创建从 `ServeHTTP` 移到了 `NewPlayerServer`，所以这只需要做一次，而不是每个请求。
+- 你将需要更新所有的测试和生产代码，我们过去用 `PlayerServer{&store}` 的改为用 `NewPlayerServer(&store)`。
 
 ### One final refactor
 
-Try changing the code to the following.
+修改代码如下。
 
 ```go
 type PlayerServer struct {
@@ -268,25 +273,26 @@ func NewPlayerServer(store PlayerStore) *PlayerServer {
 }
 ```
 
-Then replace `server := &PlayerServer{&store}` with `server := NewPlayerServer(&store)` in `server_test.go`, `server_integration_test.go`, and `main.go`.
+在 `server_test.go`, `server_integration_test.go`, 和 `main.go` 中用 `server := NewPlayerServer(&store)` 替代 `server := &PlayerServer{&store}`。
 
-Finally make sure you **delete** `func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request)` as it is no longer needed!
+最后，确保你**删除**  `func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request)` 因为它不再需要!
 
 ## Embedding
 
-We changed the second property of `PlayerServer`, removing the named property `router http.ServeMux` and replaced it with `http.Handler`; this is called _embedding_.
+我们修改了 `PlayerServer` 的第二个属性，删除了 `router http.ServeMux` 的命名属性将其替换为 `http.Handler` 这叫做嵌入。
 
-> Go does not provide the typical, type-driven notion of subclassing, but it does have the ability to “borrow” pieces of an implementation by embedding types within a struct or interface.
+> Go没有提供典型的、类型驱动的子类概念，但它确实能够通过在结构或接口中嵌入类型来“借用”实现的各个部分。
 
 [Effective Go - Embedding](https://golang.org/doc/effective_go.html#embedding)
 
-What this means is that our `PlayerServer` now has all the methods that `http.Handler` has, which is just `ServeHTTP`.
+这意味着我们的 `PlayerServer` 现在有 `http.Handler` 的所有方法，也就是 `ServeHTTP`。
 
-To "fill in" the `http.Handler` we assign it to the `router` we create in `NewPlayerServer`. We can do this because `http.ServeMux` has the method `ServeHTTP`.
+To "fill in" the `http.Handler` we assign it to the `router` we create in `NewPlayerServer`.
+我们能这样做是因为 `http.ServerMux` 有 `ServeHTTP` 方法。
 
-This lets us remove our own `ServeHTTP` method, as we are already exposing one via the embedded type.
+这让我们可以删除自己的 `ServeHTTP` 方法，因为我们已经通过嵌入式类型公开了一个方法。
 
-Embedding is a very interesting language feature. You can use it with interfaces to compose new interfaces.
+嵌入是一个非常有趣的语言特性。您可以将它与接口一起使用，以组成新的接口。
 
 ```go
 type Animal interface {
@@ -295,21 +301,21 @@ type Animal interface {
 }
 ```
 
-And you can use it with concrete types too, not just interfaces. As you'd expect if you embed a concrete type you'll have access to all its public methods and fields.
+您也可以将它用于具体类型，而不仅仅是接口。正如您所期望的那样，如果您嵌入了一个具体类型，您就可以访问它的所有公共方法和字段。
 
 ### Any downsides?
 
-You must be careful with embedding types because you will expose all public methods and fields of the type you embed. In our case, it is ok because we embedded just the _interface_ that we wanted to expose (`http.Handler`).
+您必须小心嵌入类型，因为您将公开所嵌入类型的所有公共方法和字段。在我们的例子中，这是可以的，因为我们只嵌入了我们想要公开的 _interface_ (`http.Handler`)。
 
-If we had been lazy and embedded `http.ServeMux` instead (the concrete type) it would still work _but_ users of `PlayerServer` would be able to add new routes to our server because `Handle(path, handler)` would be public.
+如果我们懒惰地嵌入了 `http.ServeMux` 代替(具体类型)它将仍然工作但是用户 `PlayerServer` 将能够添加新的路由到我们的服务器，因为 `Handle(path, handler)` 将是公共的。
 
-**When embedding types, really think about what impact that has on your public API.**
+**当嵌入类型时，真的要考虑它对你的公共 API 有什么影响**
 
-It is a _very_ common mistake to misuse embedding and end up polluting your APIs and exposing the internals of your type.
+滥用嵌入是一个非常常见的错误，最终会污染 api 并暴露类型的内部。
 
-Now we've restructured our application we can easily add new routes and have the start of the `/league` endpoint. We now need to make it return some useful information.
+现在我们已经重新构造了我们的应用程序，我们可以很容易地添加新的路由，并有了 `/league` 端点的开始。现在我们需要让它返回一些有用的信息。
 
-We should return some JSON that looks something like this.
+我们应该返回类似这样的 JSON。
 
 ```json
 [
@@ -326,7 +332,7 @@ We should return some JSON that looks something like this.
 
 ## Write the test first
 
-We'll start by trying to parse the response into something meaningful.
+首先，我们将尝试将响应解析为有意义的内容。
 
 ```go
 //server_test.go
@@ -355,20 +361,20 @@ func TestLeague(t *testing.T) {
 
 ### Why not test the JSON string?
 
-You could argue a simpler initial step would be just to assert that the response body has a particular JSON string.
+您可以认为，更简单的初始步骤是断言响应主体具有特定的 JSON 字符串。
 
-In my experience tests that assert against JSON strings have the following problems.
+根据我的经验，断言 JSON 字符串的测试有以下问题。
 
-- *Brittleness*. If you change the data-model your tests will fail.
-- *Hard to debug*. It can be tricky to understand what the actual problem is when comparing two JSON strings.
-- *Poor intention*. Whilst the output should be JSON, what's really important is exactly what the data is, rather than how it's encoded.
-- *Re-testing the standard library*. There is no need to test how the standard library outputs JSON, it is already tested. Don't test other people's code.
+- *脆弱性*. 如果更改数据模型，测试将失败。
+- *难以调试*. 在比较两个 JSON 字符串时，理解实际问题是很棘手的。
+- *Poor intention*. 虽然输出应该是 JSON，但真正重要的是数据是什么，而不是它是如何编码的。
+- *Re-testing the standard library*. 不需要测试标准库如何输出 JSON，它已经被测试过了。不要测试别人的代码。
 
-Instead, we should look to parse the JSON into data structures that are relevant for us to test with.
+相反，我们应该将 JSON 解析为与测试相关的数据结构。
 
 ### Data modelling
 
-Given the JSON data model, it looks like we need an array of `Player` with some fields so we have created a new type to capture this.
+考虑到 JSON 数据模型，我们似乎需要一个带有一些字段的 `Player` 数组，所以我们创建了一个新类型来捕获它。
 
 ```go
 //server.go
@@ -386,11 +392,14 @@ var got []Player
 err := json.NewDecoder(response.Body).Decode(&got)
 ```
 
-To parse JSON into our data model we create a `Decoder` from `encoding/json` package and then call its `Decode` method. To create a `Decoder` it needs an `io.Reader` to read from which in our case is our response spy's `Body`.
+为了将 JSON 解析到我们的数据模型中，我们从 `encoding/json` 包中创建了一个 `Decoder`，然后调用它的 `Decode` 方法。
+要创建一个 `Decoder` 它需要一个 `io.Reader` 从哪里读取。
 
-`Decode` takes the address of the thing we are trying to decode into which is why we declare an empty slice of `Player` the line before.
+`Decode` 获取我们试图解码的东西的地址，这就是为什么我们在前面声明一个空的 `Player` 切片。
 
-Parsing JSON can fail so `Decode` can return an `error`. There's no point continuing the test if that fails so we check for the error and stop the test with `t.Fatalf` if it happens. Notice that we print the response body along with the error as it's important for someone running the test to see what string cannot be parsed.
+解析 JSON 可能会失败，所以 `Decode` 会返回一个 `error`。如果失败了，继续测试就没有意义了，所以我们检查错误并使用 `t.Fatalf` 停止测试。如果真的发生的话。请注意，我们打印了伴随错误的响应体，因为这对运行测试的人来说很重要，以查看哪些字符串不能被解析。
+
+
 
 ## Try to run the test
 
@@ -400,7 +409,7 @@ Parsing JSON can fail so `Decode` can return an `error`. There's no point contin
         server_test.go:107: Unable to parse response from server '' into slice of Player, 'unexpected end of JSON input'
 ```
 
-Our endpoint currently does not return a body so it cannot be parsed into JSON.
+我们的端点目前没有返回一个 body，所以它不能被解析成 JSON。
 
 ## Write enough code to make it pass
 
@@ -417,20 +426,18 @@ func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-The test now passes.
+现在测试通过了。
 
 ### Encoding and Decoding
 
-Notice the lovely symmetry in the standard library.
+注意标准库中可爱的对称。
 
-- To create an `Encoder` you need an `io.Writer` which is what `http.ResponseWriter` implements.
-- To create a `Decoder` you need an `io.Reader` which the `Body` field of our response spy implements.
-
-Throughout this book, we have used `io.Writer` and this is another demonstration of its prevalence in the standard library and how a lot of libraries easily work with it.
+- 要创建一个 `Encoder`，你需要一个 `io.Writer`，`http.ResponseWriter` 实现了它。
+- 要创建一个 `Decoder`，你需要一个 `io.Reader`。
 
 ## Refactor
 
-It would be nice to introduce a separation of concern between our handler and getting the `leagueTable` as we know we're going to not hard-code that very soon.
+在我们的处理程序和获取 `leagueTable` 之间引入一个关注点分离是很好的，因为我们知道我们不会很快进行硬编码。
 
 ```go
 //server.go
@@ -446,13 +453,13 @@ func (p *PlayerServer) getLeagueTable() []Player {
 }
 ```
 
-Next, we'll want to extend our test so that we can control exactly what data we want back.
+接下来，我们将扩展测试，以便能够精确地控制想要返回的数据。
 
 ## Write the test first
 
-We can update the test to assert that the league table contains some players that we will stub in our store.
+我们可以更新测试，以确定 league 表中包含一些我们将在 store stub 的玩家。
 
-Update `StubPlayerStore` to let it store a league, which is just a slice of `Player`. We'll store our expected data in there.
+更新 `StubPlayerStore`，让它存储一个 league，这只是 `Player` 的一部分。我们会把我们想要的数据存储在那里。
 
 ```go
 //server_test.go
@@ -463,7 +470,7 @@ type StubPlayerStore struct {
 }
 ```
 
-Next, update our current test by putting some players in the league property of our stub and assert they get returned from our server.
+接下来，通过将一些玩家放到我们存根的 league 属性中，并断言他们从我们的服务器返回来更新我们当前的测试。
 
 ```go
 //server_test.go
@@ -510,9 +517,9 @@ func TestLeague(t *testing.T) {
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
-You'll need to update the other tests as we have a new field in `StubPlayerStore`; set it to nil for the other tests.
+你需要更新其他测试，因为我们在 `StubPlayerStore` 中有一个新字段;在其他测试中设置为 nil。
 
-Try running the tests again and you should get
+再次运行测试
 
 ```
 === RUN   TestLeague/it_returns_the_league_table_as_JSON
@@ -522,7 +529,8 @@ Try running the tests again and you should get
 
 ## Write enough code to make it pass
 
-We know the data is in our `StubPlayerStore` and we've abstracted that away into an interface `PlayerStore`. We need to update this so anyone passing us in a `PlayerStore` can provide us with the data for leagues.
+我们知道数据在我们的 `StubPlayerStore` 中，我们已经把它抽象到一个接口 `PlayerStore` 中。
+我们需要更新它，这样任何传递给我们 `PlayerStore` 的都可以为我们提供联赛的数据。
 
 ```go
 //server.go
@@ -533,7 +541,7 @@ type PlayerStore interface {
 }
 ```
 
-Now we can update our handler code to call that rather than returning a hard-coded list. Delete our method `getLeagueTable()` and then update `leagueHandler` to call `GetLeague()`.
+现在我们可以更新处理程序代码来调用它，而不是返回一个硬编码的列表。删除我们的方法 `getLeagueTable()`，然后更新 `leagueHandler` 来调用 `GetLeague()`。
 
 ```go
 //server.go
@@ -543,7 +551,7 @@ func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Try and run the tests.
+运行测试。
 
 ```
 # github.com/quii/learn-go-with-tests/json-and-io/v4
@@ -559,9 +567,9 @@ Try and run the tests.
     *StubPlayerStore does not implement PlayerStore (missing GetLeague method)
 ```
 
-The compiler is complaining because `InMemoryPlayerStore` and `StubPlayerStore` do not have the new method we added to our interface.
+编译器抱怨，因为 `InMemoryPlayerStore` 和 `StubPlayerStore` 没有我们添加到接口的新方法。
 
-For `StubPlayerStore` it's pretty easy, just return the `league` field we added earlier.
+对于 `StubPlayerStore` 很简单, 只需返回我们之前添加的 `league` 字段。
 
 ```go
 //server_test.go
@@ -570,7 +578,7 @@ func (s *StubPlayerStore) GetLeague() []Player {
 }
 ```
 
-Here's a reminder of how `InMemoryStore` is implemented.
+下面是关于 `InMemoryStore` 是如何实现的提示。
 
 ```go
 //in_memory_player_store.go
@@ -579,9 +587,9 @@ type InMemoryPlayerStore struct {
 }
 ```
 
-Whilst it would be pretty straightforward to implement `GetLeague` "properly" by iterating over the map remember we are just trying to _write the minimal amount of code to make the tests pass_.
+虽然通过迭代 map “正确”执行 `GetLeague` 非常简单，但请记住，我们只是试图编写最少的代码以使测试通过。
 
-So let's just get the compiler happy for now and live with the uncomfortable feeling of an incomplete implementation in our `InMemoryStore`.
+所以现在让编译器高兴一下，在我们的 `InMemoryStore` 中接受一个不完整实现的不舒服感觉。
 
 ```go
 //in_memory_player_store.go
@@ -590,13 +598,13 @@ func (i *InMemoryPlayerStore) GetLeague() []Player {
 }
 ```
 
-What this is really telling us is that _later_ we're going to want to test this but let's park that for now.
+它真正告诉我们的是，稍后我们将对它进行测试，但我们先把它搁置一边。
 
-Try and run the tests, the compiler should pass and the tests should be passing!
+尝试并运行测试，编译器应该通过，测试也应该通过!
 
 ## Refactor
 
-The test code does not convey out intent very well and has a lot of boilerplate we can refactor away.
+测试代码不能很好地表达意图，并且有很多我们可以重构的样板。
 
 ```go
 //server_test.go
@@ -621,7 +629,7 @@ t.Run("it returns the league table as JSON", func(t *testing.T) {
 })
 ```
 
-Here are the new helpers
+下面是一些新的 helpers
 
 ```go
 //server_test.go
@@ -649,11 +657,11 @@ func newLeagueRequest() *http.Request {
 }
 ```
 
-One final thing we need to do for our server to work is make sure we return a `content-type` header in the response so machines can recognise we are returning `JSON`.
+为了让服务器正常工作，我们需要做的最后一件事是确保在响应中返回一个 `content-type` 报头，以便机器能够识别我们返回的是 `JSON`。
 
 ## Write the test first
 
-Add this assertion to the existing test
+将此断言添加到现有测试中
 
 ```go
 //server_test.go
@@ -672,7 +680,7 @@ if response.Result().Header.Get("content-type") != "application/json" {
 
 ## Write enough code to make it pass
 
-Update `leagueHandler`
+更新 `leagueHandler`
 
 ```go
 //server.go
@@ -682,11 +690,11 @@ func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-The test should pass.
+测试应该能通过了。
 
 ## Refactor
 
-Create a constant for "application/json" and use it in `leagueHandler`
+为 `application/json` 创建一个常量，并在 `leagueHandler` 里面使用
 
 ```go
 //server.go
@@ -698,7 +706,7 @@ func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Then add a helper for `assertContentType`.
+为 `assertContentType` 添加一个 helper。
 
 ```go
 //server_test.go
@@ -710,20 +718,20 @@ func assertContentType(t testing.TB, response *httptest.ResponseRecorder, want s
 }
 ```
 
-Use it in the test.
+在测试中使用它。
 
 ```go
 //server_test.go
 assertContentType(t, response, jsonContentType)
 ```
 
-Now that we have sorted out `PlayerServer` for now we can turn our attention to `InMemoryPlayerStore` because right now if we tried to demo this to the product owner `/league` will not work.
+现在我们已经解决了 `PlayerServer`，现在我们可以将注意力转向 `InMemoryPlayerStore`，因为现在如果我们试图向产品所有者演示这个，`/league` 将不起作用。
 
-The quickest way for us to get some confidence is to add to our integration test, we can hit the new endpoint and check we get back the correct response from `/league`.
+对于我们来说，获得一些信心的最快方法是添加到我们的集成测试中，我们可以点击新的端点，并检查我们从 `/league` 得到正确的响应。
 
 ## Write the test first
 
-We can use `t.Run` to break up this test a bit and we can reuse the helpers from our server tests - again showing the importance of refactoring tests.
+我们可以用 `t.Run` 来分解这个测试，我们可以重用我们的服务器测试的助手 —— 再次显示了重构测试的重要性。
 
 ```go
 //server_integration_test.go
@@ -768,7 +776,7 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 
 ## Write enough code to make it pass
 
-`InMemoryPlayerStore` is returning `nil` when you call `GetLeague()` so we'll need to fix that.
+`InMemoryPlayerStore` 会在你调用 `GetLeague()` 时返回 `nil` 所以我们需要修正这个。
 
 ```go
 //in_memory_player_store.go
@@ -781,16 +789,18 @@ func (i *InMemoryPlayerStore) GetLeague() []Player {
 }
 ```
 
-All we need to do is iterate over the map and convert each key/value to a `Player`.
+我们所需要做的就是遍历 map 并将每个键/值转换为 `Player`。
 
-The test should now pass.
+测试现在应该能通过了。
 
 ## Wrapping up
 
-We've continued to safely iterate on our program using TDD, making it support new endpoints in a maintainable way with a router and it can now return JSON for our consumers. In the next chapter, we will cover persisting the data and sorting our league.
+我们继续使用 TDD 安全地迭代我们的程序，使它以一种可维护的方式通过路由器支持新的端点，现在它可以为我们的消费者返回 JSON。在下一章中，我们将介绍数据持久化和联赛排序。
+
 
 What we've covered:
 
-- **Routing**. The standard library offers you an easy to use type to do routing. It fully embraces the `http.Handler` interface in that you assign routes to `Handler`s and the router itself is also a `Handler`. It does not have some features you might expect though such as path variables (e.g `/users/{id}`). You can easily parse this information yourself but you might want to consider looking at other routing libraries if it becomes a burden. Most of the popular ones stick to the standard library's philosophy of also implementing `http.Handler`.
-- **Type embedding**. We touched a little on this technique but you can [learn more about it from Effective Go](https://golang.org/doc/effective_go.html#embedding). If there is one thing you should take away from this is that it can be extremely useful but _always thinking about your public API, only expose what's appropriate_.
-- **JSON deserializing and serializing**. The standard library makes it very trivial to serialise and deserialise your data. It is also open to configuration and you can customise how these data transformations work if necessary.
+- **Routing**. 标准库为您提供了一种易于使用的类型来进行路由。它完全包含了 `http.Handler` 接口，你把路由分配给 `Handler`，路由器本身也是一个 `Handler`。它没有一些你可能期望的特性，比如路径变量(例如 `/users/{id}`)。您可以自己轻松地解析这些信息，但如果它成为负担，您可能需要考虑查看其他路由库。大多数流行的程序都坚持标准库的理念，即同时实现`http.Handler`。
+- **Type embedding**. 我们接触了一些关于类型嵌套的技术，你可以[从这看到关于这个更多的介绍](https://golang.org/doc/effective_go.html#embedding)，如果有一件事你应该从中学到，那就是它可能非常有用，但要始终考虑你的公共 API，只暴露适当的。
+- **JSON deserializing and serializing**. 标准库使得序列化和反序列化数据变得非常简单。它还可以进行配置，如果需要，您可以定制这些数据转换的工作方式。
+
