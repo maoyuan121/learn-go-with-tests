@@ -179,7 +179,7 @@ func TestArea(t *testing.T) {
 
 }
 ```
- 
+
  如你所见，`f` 已经被 `g` 取代了，
  使用 `f` 可能很难知道精确的小数，
  使用 `g`，我们在错误消息中得到一个完整的十进制数
@@ -199,7 +199,7 @@ type Circle struct {
 }
 ```
 
-Now try to run the tests again
+现在运行测试
 
 `./shapes_test.go:29:14: cannot use circle (type Circle) as type Rectangle in argument to Area`
 
@@ -221,13 +221,13 @@ func Area(rectangle Rectangle) float64 { ... }
 
 ### What are methods?
 
-So far we have only been writing _functions_ but we have been using some methods. When we call `t.Errorf` we are calling the method `Errorf` on the instance of our `t` \(`testing.T`\).
+目前为止我们还只写了函数，但是我们使用了方法。当我们调用 `t.Errorf`，调用的是 `testing.T` 实例 `t` 的 `Errorf` 方法。
 
-A method is a function with a receiver. A method declaration binds an identifier, the method name, to a method, and associates the method with the receiver's base type.
+方法是一个带有接收器的函数。方法声明将标识符(方法名)绑定到方法，并将方法与接收方的基类型关联起来。
 
-Methods are very similar to functions but they are called by invoking them on an instance of a particular type. Where you can just call functions wherever you like, such as `Area(rectangle)` you can only call methods on "things".
+方法与函数非常相似，但它们是通过在特定类型的实例上调用它们来调用的。你可以在任何你喜欢的地方调用函数，比如 `Area(rectangle)`，你只能在“things”上调用方法。
 
-An example will help so let's change our tests first to call methods instead and then fix the code.
+一个示例将会有所帮助，因此让我们先更改测试，以调用方法，然后修复代码。
 
 ```go
 func TestArea(t *testing.T) {
@@ -255,20 +255,20 @@ func TestArea(t *testing.T) {
 }
 ```
 
-If we try to run the tests, we get
+如果现在运行测试，将得到
 
 ```text
 ./shapes_test.go:19:19: rectangle.Area undefined (type Rectangle has no field or method Area)
 ./shapes_test.go:29:16: circle.Area undefined (type Circle has no field or method Area)
 ```
 
-> type Circle has no field or method Area
+> 类型 Circle 没有字段或方法 Area
 
-I would like to reiterate how great the compiler is here. It is so important to take the time to slowly read the error messages you get, it will help you in the long run.
+我想重申一下这里的编译器有多棒。花时间慢慢地阅读你得到的错误消息是非常重要的，从长远来看，这将帮助你。
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
-Let's add some methods to our types
+为我们的类型添加一些方法
 
 ```go
 type Rectangle struct {
@@ -289,21 +289,21 @@ func (c Circle) Area() float64  {
 }
 ```
 
-The syntax for declaring methods is almost the same as functions and that's because they're so similar. The only difference is the syntax of the method receiver `func (receiverName ReceiverType) MethodName(args)`.
+声明方法的语法几乎与函数相同，这是因为它们非常相似。唯一的区别是方法 receiver `func (receiverName ReceiverType) MethodName(args)` 的语法。
 
-When your method is called on a variable of that type, you get your reference to its data via the `receiverName` variable. In many other programming languages this is done implicitly and you access the receiver via `this`.
+当你的方法被这种类型的变量调用时，你通过 `receiverName` 变量获得对它数据的引用。在许多其他编程语言中，这是隐式完成的，你通过 `this` 访问接收器。
 
-It is a convention in Go to have the receiver variable be the first letter of the type.
+Go 中的约定是让 receiver 变量是该类型的第一个字母。
 
 ```go
 r Rectangle
 ```
 
-If you try to re-run the tests they should now compile and give you some failing output.
+如果您尝试重新运行测试，它们现在应该编译并给出一些失败的输出。
 
 ## Write enough code to make it pass
 
-Now let's make our rectangle tests pass by fixing our new method
+现在让我们通过固定我们的新方法来通过矩形测试
 
 ```go
 func (r Rectangle) Area() float64  {
@@ -311,9 +311,9 @@ func (r Rectangle) Area() float64  {
 }
 ```
 
-If you re-run the tests the rectangle tests should be passing but circle should still be failing.
+如果重新运行测试，矩形测试应该通过，但圆形测试仍然失败。
 
-To make circle's `Area` function pass we will borrow the `Pi` constant from the `math` package \(remember to import it\).
+为了让 circle 的 `Area` 函数通过，我们将从 `math` 包中借用 `Pi`常量(记住要导入它)。
 
 ```go
 func (c Circle) Area() float64  {
@@ -323,17 +323,17 @@ func (c Circle) Area() float64  {
 
 ## Refactor
 
-There is some duplication in our tests.
+我们的测试有些重复。
 
-All we want to do is take a collection of _shapes_, call the `Area()` method on them and then check the result.
+我们所要做的就是取一个 _shapes_ 集合，对它们调用 `Area()` 方法，然后检查结果。
 
-We want to be able to write some kind of `checkArea` function that we can pass both `Rectangle`s and `Circle`s to, but fail to compile if we try to pass in something that isn't a shape.
+我们希望能够编写一些 `checkArea` 函数，我们可以传递 `Rectangle` 和 `Circle`，但如果我们试图传递一些不是形状的东西，则无法编译。
 
-With Go, we can codify this intent with **interfaces**.
+有了 Go，我们可以通过接口来实现这个意图。
 
-[Interfaces](https://golang.org/ref/spec#Interface_types) are a very powerful concept in statically typed languages like Go because they allow you to make functions that can be used with different types and create highly-decoupled code whilst still maintaining type-safety.
+[Interfaces](https://golang.org/ref/spec#Interface_types) 在像 Go 这样的静态类型语言中是一个非常强大的概念，因为它们允许您创建可用于不同类型的函数，并创建高度解耦的代码，同时仍然保持类型安全。
 
-Let's introduce this by refactoring our tests.
+让我们通过重构测试来引入这一点。
 
 ```go
 func TestArea(t *testing.T) {
@@ -359,9 +359,9 @@ func TestArea(t *testing.T) {
 }
 ```
 
-We are creating a helper function like we have in other exercises but this time we are asking for a `Shape` to be passed in. If we try to call this with something that isn't a shape, then it will not compile.
+我们正在创建一个 helper 函数，就像我们在其他练习中所做的那样，但这次我们要求传入一个 `Shape`。如果我们试图用非形状的东西调用它，那么它将无法编译。
 
-How does something become a shape? We just tell Go what a `Shape` is using an interface declaration
+物体是如何变成形状的?我们只需要使用接口声明告诉 Go 一个 Shape 是什么
 
 ```go
 type Shape interface {
@@ -369,34 +369,35 @@ type Shape interface {
 }
 ```
 
-We're creating a new `type` just like we did with `Rectangle` and `Circle` but this time it is an `interface` rather than a `struct`.
+我们正在创建一个新的 `type`，就像我们对 `Rectangle` 和 `Circle` 做的那样，但这次它是一个 `interface` 而不是一个 `struct`。
 
-Once you add this to the code, the tests will pass.
+一旦将此添加到代码中，测试就会通过。
 
 ### Wait, what?
 
-This is quite different to interfaces in most other programming languages. Normally you have to write code to say `My type Foo implements interface Bar`.
+这与大多数其他编程语言中的接口非常不同。通常情况下，你必须写代码说 `My type Foo implements interface Bar`。
 
-But in our case
+但在我们的案例中
 
-* `Rectangle` has a method called `Area` that returns a `float64` so it satisfies the `Shape` interface
-* `Circle` has a method called `Area` that returns a `float64` so it satisfies the `Shape` interface
-* `string` does not have such a method, so it doesn't satisfy the interface
+* `Rectangle` 有一个方法 `Area` 它返回 `float64`，因此它实现了 `Shape` 接口
+* `Circle` 有一个方法 `Area` 它返回 `float64`，因此它实现了 `Shape` 接口
+* `string` 没有这个方法，因此它没有实现 `Shape` 接口
 * etc.
 
-In Go **interface resolution is implicit**. If the type you pass in matches what the interface is asking for, it will compile.
+在Go中，接口分辨是隐式的。如果传入的类型与接口所要求的类型匹配，则接口将编译。
 
 ### Decoupling
 
-Notice how our helper does not need to concern itself with whether the shape is a `Rectangle` or a `Circle` or a `Triangle`. By declaring an interface the helper is _decoupled_ from the concrete types and just has the method it needs to do its job.
+请注意，我们的 helper 并不需要关心形状是 `Rectangle`、 `Circle` 还是 `Triangle`。
+通过声明一个接口，helper 就可以从具体的类型中分离出来，并且只拥有完成工作所需的方法。
 
-This kind of approach of using interfaces to declare **only what you need** is very important in software design and will be covered in more detail in later sections.
+这种使用接口来声明“只需要”的方法在软件设计中是非常重要的，在后面的小节中将详细介绍。
 
 ## Further refactoring
 
-Now that you have some understanding of structs we can introduce "table driven tests".
+现在你已经对结构有了一些了解，我们可以介绍“表驱动测试”了。
 
-[Table driven tests](https://github.com/golang/go/wiki/TableDrivenTests) are useful when you want to build a list of test cases that can be tested in the same manner.
+当您想要构建一个可以以相同方式测试的测试用例列表时，[Table driven tests](https://github.com/golang/go/wiki/TableDrivenTests) 是有用的。
 
 ```go
 func TestArea(t *testing.T) {
@@ -419,19 +420,25 @@ func TestArea(t *testing.T) {
 }
 ```
 
-The only new syntax here is creating an "anonymous struct", areaTests. We are declaring a slice of structs by using `[]struct` with two fields, the `shape` and the `want`. Then we fill the slice with cases.
+这里唯一的新语法是创建一个“匿名结构” areaTests。我们使用 `[]struct` 来声明一个结构块，它有两个字段: `shape` 和 `want` 。
 
-We then iterate over them just like we do any other slice, using the struct fields to run our tests.
+然后，就像对任何其他切片一样，使用 struct 字段对它们进行迭代，以运行测试。
 
-You can see how it would be very easy for a developer to introduce a new shape, implement `Area` and then add it to the test cases. In addition, if a bug is found with `Area` it is very easy to add a new test case to exercise it before fixing it.
+您可以看到，对于开发人员来说，引入一个新的形状，实现 `Area`，然后将其添加到测试用例中是非常容易的。
+此外，如果在 `Area` 中发现了一个 bug，那么在修复它之前添加一个新的测试用例来测试它是非常容易的。
 
-Table based tests can be a great item in your toolbox but be sure that you have a need for the extra noise in the tests. If you wish to test various implementations of an interface, or if the data being passed in to a function has lots of different requirements that need testing then they are a great fit.
+基于表的测试可能是工具箱中的一个重要项目，但请确保您需要在测试中添加额外的噪声。
+如果您希望测试接口的各种实现，或者如果传入函数的数据有许多不同的需求需要测试，那么它们是非常合适的。
 
-Let's demonstrate all this by adding another shape and testing it; a triangle.
+让我们通过添加另一个形状并测试它来演示所有这些;一个三角形。
 
 ## Write the test first
 
 Adding a new test for our new shape is very easy. Just add `{Triangle{12, 6}, 36.0},` to our list.
+
+为我们的新形状添加一个新的测试是非常容易的。只需将 `{Triangle{12, 6}, 36.0},` 添加到我们的列表中。
+
+
 
 ```go
 func TestArea(t *testing.T) {
