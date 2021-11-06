@@ -421,9 +421,9 @@ const sleep = "sleep"
 
 我们的 `CountdownOperationsSpy` 实现了 `io.Writer` 和 `Sleeper`。
 
-recording every call into one slice. In this test we're only concerned about the order of operations, so just recording them as list of named operations is sufficient.
+记录每一个调用到一个切片。在这个测试中，我们只关心操作的顺序，所以只要将它们记录为命名操作列表就足够了。
 
-We can now add a sub-test into our test suite which verifies our sleeps and prints operate in the order we hope
+我们现在可以在我们的测试套件中添加一个子测试，以验证我们的睡眠和打印操作的顺序
 
 ```go
 t.Run("sleep before every print", func(t *testing.T) {
@@ -447,9 +447,9 @@ t.Run("sleep before every print", func(t *testing.T) {
 })
 ```
 
-This test should now fail. Revert `Countdown` back to how it was to fix the test.
+这个测试现在应该失败了。将 `Countdown`  恢复到修复测试时的状态。
 
-We now have two tests spying on the `Sleeper` so we can now refactor our test so one is testing what is being printed and the other one is ensuring we're sleeping in between the prints. Finally we can delete our first spy as it's not used anymore.
+我们现在有两个测试监视 `Sleeper`，所以我们现在可以重构我们的测试，所以一个是测试正在打印什么，另一个是确保我们在打印之间睡觉。我们终于可以删除第一个间谍了，因为它不再被使用了。
 
 ```go
 func TestCountdown(t *testing.T) {
@@ -491,15 +491,15 @@ Go!`
 }
 ```
 
-We now have our function and its 2 important properties properly tested.
+现在我们已经正确地测试了函数和它的两个重要性质。
 
-## Extending Sleeper to be configurable
+## 扩展 Sleeper 可配置
 
-A nice feature would be for the `Sleeper` to be configurable. This means that we can adjust the sleep time in our main program.
+一个不错的功能是 `Sleeper` 可以配置。这意味着我们可以在主程序中调整睡眠时间。
 
 ### Write the test first
 
-Let's first create a new type for `ConfigurableSleeper` that accepts what we need for configuration and testing.
+让我们首先为 `ConfigurableSleeper` 创建一个新类型，它接受我们配置和测试所需要的东西。
 
 ```go
 type ConfigurableSleeper struct {
@@ -508,7 +508,9 @@ type ConfigurableSleeper struct {
 }
 ```
 
-We are using `duration` to configure the time slept and `sleep` as a way to pass in a sleep function. The signature of `sleep` is the same as for `time.Sleep` allowing us to use `time.Sleep` in our real implementation and the following spy in our tests:
+We are using `duration` to configure the time slept and `sleep` as a way to pass in a sleep function. 
+The signature of `sleep` is the same as for `time.Sleep` allowing us to use `time.Sleep` in our real implementation and the following spy in our tests:
+
 
 ```go
 type SpyTime struct {
@@ -520,7 +522,7 @@ func (s *SpyTime) Sleep(duration time.Duration) {
 }
 ```
 
-With our spy in place, we can create a new test for the configurable sleeper.
+我们的 spy 就位后，我们可以为可配置的睡眠者创建一个新的测试。
 
 ```go
 func TestConfigurableSleeper(t *testing.T) {
@@ -536,7 +538,7 @@ func TestConfigurableSleeper(t *testing.T) {
 }
 ```
 
-There should be nothing new in this test and it is setup very similar to the previous mock tests.
+这个测试中应该没有新的内容，而且它的设置与以前的模拟测试非常相似。
 
 ### Try and run the test
 ```
@@ -544,7 +546,7 @@ sleeper.Sleep undefined (type ConfigurableSleeper has no field or method Sleep, 
 
 ```
 
-You should see a very clear error message indicating that we do not have a `Sleep` method created on our `ConfigurableSleeper`.
+你应该看到一个非常清晰的错误消息，表明我们没有在我们的 `ConfigurableSleeper` 上创建一个 `Sleep` 方法。
 
 ### Write the minimal amount of code for the test to run and check failing test output
 ```go
