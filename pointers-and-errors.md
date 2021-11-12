@@ -689,7 +689,7 @@ func assertError(t testing.TB, got error, want error) {
 
 ### Create new types from existing ones
 
-* Useful for adding more domain specific meaning to values
-* Can let you implement interfaces
+* 用于向值添加更多特定领域的含义
+* 能让你实现接口
 
 指针和错误是编写 Go 的重要部分，你需要熟悉它们。幸运的是，如果你做错了，编译器通常会帮助你，只要花时间阅读错误。
