@@ -71,11 +71,11 @@ func Add(x, y int) int {
 }
 ```
 
-呀哈!又失败了，TDD是假的，对吧?
+呀哈!又失败了，TDD 是假的，对吧?
 
 我们可以编写另一个测试，使用一些不同的数字来迫使测试失败，但这感觉就像[猫捉老鼠的游戏](https://en.m.wikipedia.org/wiki/Cat_and_mouse)。
 
-一旦我们更加熟悉 Go 的语法，我将介绍一种名为“基于属性的测试”的技术，它将停止打扰开发人员，并帮助您找到bug。
+一旦我们更加熟悉 Go 的语法，我将介绍一种名为“基于属性的测试”的技术，它将停止打扰开发人员，并帮助您找到 bug。
 
 现在，让我们正确地修复它
 
@@ -147,14 +147,14 @@ $ go test -v
 
 在这里，你会看到 `$GOPATH` 中的所有包的列表，所以假设你在 `$GOPATH/src/github.com/{your_id}` 之类的地方写了这段代码，你就可以找到你的示例文档。
 
-如果你将你的代码和示例发布到一个公共 URL，你可以在[pkg.go.dev](https://pkg.go.dev/)分享你的代码文档。例如，[here](https://pkg.go.dev/github.com/quii/learn-go-with-tests/integers/v2)
+如果你将你的代码和示例发布到一个公共 URL，你可以在 [pkg.go.dev](https://pkg.go.dev/)分享你的代码文档。例如，[here](https://pkg.go.dev/github.com/quii/learn-go-with-tests/integers/v2)
 是本章最终确定的 API。这个 web 界面允许您搜索标准库包和第三方包的文档。
 
 ## Wrapping up
 
 我们已经涵盖了:
 
-* 更多TDD工作流程的实践
+* 更多 TDD 工作流程的实践
 * 整形, 加法
 * 编写更好的文档，以便我们的代码的用户能够快速理解它的用法
 * 示例说明如何使用我们的代码，这些代码将作为测试的一部分进行检查

@@ -221,7 +221,7 @@ func Hello(name string) string {
 }
 ```
 
-现在测试应该能通过了。通常，作为TDD周期的一部分，我们现在应该进行重构。
+现在测试应该能通过了。通常，作为 TDD 周期的一部分，我们现在应该进行重构。
 
 ### A note on source control
 
@@ -258,8 +258,6 @@ func Hello(name string) string {
 但值得考虑创建常量来捕获值的含义，有时还有助于提高性能。
 
 ## Hello, world... again
-
-The next requirement is when our function is called with an empty string it defaults to printing "Hello, World", rather than "Hello, ".
 
 下一个需求是，当我们的函数被一个空字符串调用时，它默认打印“Hello, World”，而不是“Hello，”。
 
@@ -553,7 +551,6 @@ func greetingPrefix(language string) (prefix string) {
 一些新的概念：
 
 * 在我们的函数前面中我们用了一个 _命名返回值_ `(prefix string)`
-* This will create a variable called `prefix` in your function.
 * 这将在函数中创建一个名为 `prefix` 的变量。
   * 它将被赋值为“零”。这取决于类型，例如 `int` 是 0，`string` 是 `""`。
     * 你可以通过调用 `return` 而不是 `return prefix` 来返回它设置的值。

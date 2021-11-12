@@ -29,7 +29,7 @@ func TestWallet(t *testing.T) {
 }
 ```
 
-在 [上个例子中](./structs-methods-and-interfaces.md) 我们直接用字段名访问字段，然而，在我们非常安全的钱包里，我们不想把自己的内部状态暴露给外界。我们想通过方法来控制访问。
+在 [上个例子中](./structs-methods-and-interfaces.md) 我们直接用字段名访问字段，然而在我们非常安全的钱包里，我们不想把自己的内部状态暴露给外界。我们想通过方法来控制访问。
 
 ## Try to run the test
 
@@ -64,9 +64,9 @@ func (w Wallet) Balance() int {
 }
 ```
 
-If this syntax is unfamiliar go back and read the structs section.
+如果你不熟悉这些语法，回头去看看 struct 章节。
 
-The tests should now compile and run
+测试现在应该能编译通过了。
 
 `wallet_test.go:15: got 0 want 10`
 
@@ -97,15 +97,15 @@ func (w Wallet) Balance() int {
 }
 ```
 
-With our career in fintech secured, run our tests and bask in the passing test
+随着我们在金融科技领域的职业生涯的稳定，运行我们的测试，并享受通过测试的乐趣
 
 `wallet_test.go:15: got 0 want 10`
 
 ### ????
 
-Well this is confusing, our code looks like it should work, we add the new amount onto our balance and then the balance method should return the current state of it.
+这很让人困惑，我们的代码看起来应该可以工作，我们将新金额添加到 balance 中然后 balance 方法应该返回它的当前状态。
 
-In Go, **when you call a function or a method the arguments are** _**copied**_.
+在Go中，当你调用一个函数或方法时，参数被复制。
 
 当调用 `func (w Wallet) Deposit(amount int)` 时，`w` 是我们调用该方法的对象的副本。
 
@@ -139,9 +139,9 @@ func (w Wallet) Deposit(amount int) {
 }
 ```
 
-The `\n` escape character, prints new line after outputting the memory address. We get the pointer to a thing with the address of symbol; `&`.
+`\n` 转义字符，在输出内存地址后打印新行。我们得到一个指向地址为symbol的对象的指针; `&`。
 
-Now re-run the test
+重新运行测试
 
 ```text
 address of balance in Deposit is 0xc420012268
@@ -190,7 +190,6 @@ func (w *Wallet) Balance() int {
 我们说过我们在做一个比特币钱包，但到目前为止我们还没有提到它们。
 我们一直在使用 `int`，因为它们是计数的好类型!
 
-
 为它创建一个 `struct` 似乎有点小题大做。`int` 在它的工作方式上是好的，但它不是描述性的。
 
 Go 允许您从现有类型创建新的类型。
@@ -230,8 +229,6 @@ func TestWallet(t *testing.T) {
 }
 ```
 
-To make `Bitcoin` you just use the syntax `Bitcoin(999)`.
-
 要 make `Bitcoin`，你只需使用 `Bitcoin(999)` 的语法。
 
 
@@ -258,7 +255,6 @@ func (b Bitcoin) String() string {
 
 接下来，我们需要更新我们的测试格式字符串，以便它们将使用 `String()` 代替。
 
-
 ```go
     if got != want {
         t.Errorf("got %s want %s", got, want)
@@ -267,12 +263,11 @@ func (b Bitcoin) String() string {
 
 为了看到它的实际作用，故意破坏测试以便我们能看到它
 
-
 `wallet_test.go:18: got 10 BTC want 20 BTC`
 
-This makes it clearer what's going on in our test.
+这让我们更清楚地知道我们的测试。
 
-The next requirement is for a `Withdraw` function.
+下一个要求是 `Withdraw` 功能。
 
 ## Write the test first
 
@@ -370,8 +365,6 @@ func TestWallet(t *testing.T) {
 
 在 Go 中，如果你想指出一个错误，按照惯例，你的函数会返回一个 `err`，让调用者检查并采取行动。
 
-Let's try this out in a test.
-
 ## Write the test first
 
 ```go
@@ -467,7 +460,7 @@ t.Run("Withdraw insufficient funds", func(t *testing.T) {
 
 ## Write the test first
 
-Update our helper for a `string` to compare against.
+更新我们的 helper 以对 `string` 进行比较。
 
 ```go
 assertError := func(t testing.TB, got error, want string) {
@@ -482,7 +475,7 @@ assertError := func(t testing.TB, got error, want string) {
 }
 ```
 
-And then update the caller
+更新调用方
 
 ```go
 t.Run("Withdraw insufficient funds", func(t *testing.T) {
@@ -525,7 +518,7 @@ func (w *Wallet) Withdraw(amount Bitcoin) error {
 如果有人想重述错误，测试失败将是非常恼人的，这对我们的测试来说太详细了。
 我们并不真正关心确切的措辞是什么，只关心在给定条件下返回一些有意义的关于退出的错误。
 
-在 Go 中，错误就是值，所以我们可以把它重构成一个变量，并有一个单一的真理来源。
+在 Go 中，**错误就是值**，所以我们可以把它重构成一个变量，并有一个单一的真理来源。
 
 ```go
 var ErrInsufficientFunds = errors.New("cannot withdraw, insufficient funds")
@@ -692,7 +685,7 @@ func assertError(t testing.TB, got error, want error) {
 * error 是调用函数/方法时表示失败的方式。
 * 通过听我们的测试，我们得出结论，在错误中检查字符串会导致测试不稳定。因此，我们进行了重构，使用了一个有意义的值，这使得代码更容易测试，并得出结论，这对我们 API 的用户来说也更容易。
 * 这还不是错误处理的结束，你可以做更复杂的事情，但这只是一个介绍。后面的部分将介绍更多的策略。
-* [Don’t just check errors, handle them gracefully](https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully)
+* [不要只是检查错误，要优雅地处理它们](https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully)
 
 ### Create new types from existing ones
 

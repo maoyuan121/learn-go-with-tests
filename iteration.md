@@ -2,11 +2,11 @@
 
 **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/for)**
 
-To do stuff repeatedly in Go, you'll need `for`. In Go there are no `while`, `do`, `until` keywords, you can only use `for`. Which is a good thing!
+在 go 中重复做一些事情，你需要 `for`。在 go 中没有 `while`、`do`、`until` 等关键字，你只能使用 `for`。这是一件好事!
 
-Let's write a test for a function that repeats a character 5 times.
+让我们为一个重复字符 5 次的函数编写一个测试。
 
-There's nothing new so far, so try and write it yourself for practice.
+到目前为止没有什么新的，所以试着自己写下来练习。
 
 ## Write the test first
 
@@ -31,9 +31,9 @@ func TestRepeat(t *testing.T) {
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
-_Keep the discipline!_ You don't need to know anything new right now to make the test fail properly.
+保持纪律!您现在不需要知道任何新的东西就可以使测试正确地失败。
 
-All you need to do right now is enough to make it compile so you can check your test is written well.
+您现在需要做的就是使它能够编译，以便检查您的测试是否编写良好。
 
 ```go
 package iteration
@@ -43,13 +43,13 @@ func Repeat(character string) string {
 }
 ```
 
-Isn't it nice to know you already know enough Go to write tests for some basic problems? This means you can now play with the production code as much as you like and know it's behaving as you'd hope.
+知道您已经掌握了足够的 Go 知识，可以为一些基本问题编写测试，不是很好吗?这意味着您现在可以随心所欲地使用生产代码，并知道它的行为与您希望的一致。
 
 `repeat_test.go:10: expected 'aaaaa' but got ''`
 
 ## Write enough code to make it pass
 
-The `for` syntax is very unremarkable and follows most C-like languages.
+`for` 语法非常普通，它遵循大多数 c 类语言。
 
 ```go
 func Repeat(character string) string {
@@ -61,21 +61,22 @@ func Repeat(character string) string {
 }
 ```
 
-Unlike other languages like C, Java, or JavaScript there are no parentheses surrounding the three components of the for statement and the braces `{ }` are always required. You might wonder what is happening in the row
+与其他语言(如C、Java或JavaScript)不同，for 语句的三个组件周围没有括号，括号 `{}` 总是必需的。你可能想知道这一行发生了什么
 
 ```go
 	var repeated string
 ```
 
-as we've been using `:=` so far to declare and initializing variables. However, `:=` is simply [short hand for both steps](https://gobyexample.com/variables). Here we are declaring a `string` variable only. Hence, the explicit version. We can also use `var` to declare functions, as we'll see later on.
+到目前为止，我们一直使 `:=` 来声明和初始化变量。然而， `:=` 仅仅是[两个步骤的简写](https://gobyexample.com/variables)。
+这里我们只声明了一个 `string` 变量。因此，显式版本。我们还可以使用 `var` 来声明函数，我们将在后面看到。
 
-Run the test and it should pass.
+运行测试现在应该能通过了。
 
-Additional variants of the for loop are described [here](https://gobyexample.com/for).
+[这里](https://gobyexample.com/for) 对于 for 循环的其他变体进行了描述。
 
 ## Refactor
 
-Now it's time to refactor and introduce another construct `+=` assignment operator.
+现在是重构和引入另一个构造 `+=` 赋值操作符的时候了。
 
 ```go
 const repeatCount = 5
@@ -89,11 +90,11 @@ func Repeat(character string) string {
 }
 ```
 
-`+=` called _"the Add AND assignment operator"_, adds the right operand to the left operand and assigns the result to left operand. It works with other types like integers.
+`+=` 称为"加法和赋值操作符"，将右操作数加到左操作数上，并将结果赋值给左操作数。它适用于其他类型，如整数。
 
 ### Benchmarking
 
-Writing [benchmarks](https://golang.org/pkg/testing/#hdr-Benchmarks) in Go is another first-class feature of the language and it is very similar to writing tests.
+在 Go 中编写 [benchmarks](https://golang.org/pkg/testing/#hdr-Benchmarks) 是该语言的另一个一流特性，它与编写测试非常相似。
 
 ```go
 func BenchmarkRepeat(b *testing.B) {
@@ -103,15 +104,17 @@ func BenchmarkRepeat(b *testing.B) {
 }
 ```
 
-You'll see the code is very similar to a test.
+您将看到代码与测试非常相似。
 
-The `testing.B` gives you access to the cryptically named `b.N`.
+`testing.B` 让你可以访问 `b.N`.。
 
 When the benchmark code is executed, it runs `b.N` times and measures how long it takes.
 
-The amount of times the code is run shouldn't matter to you, the framework will determine what is a "good" value for that to let you have some decent results.
+当基准代码被执行时，它运行 `b.N` 次，并计算所需的时间。
 
-To run the benchmarks do `go test -bench=.` (or if you're in Windows Powershell `go test -bench="."`)
+代码运行的次数对你来说不重要，框架将决定什么是“好的”值，让你有一些像样的结果。
+
+要运行 benchmarks 测试，请执行 `go test -bench=`。(或者如果你在Windows Powershell中 `go test -bench="."`)
 
 ```text
 goos: darwin
@@ -121,15 +124,15 @@ pkg: github.com/quii/learn-go-with-tests/for/v4
 PASS
 ```
 
-What `136 ns/op` means is our function takes on average 136 nanoseconds to run \(on my computer\). Which is pretty ok! To test this it ran it 10000000 times.
+`136 ns/op` 的意思是我们的函数运行\(在我的计算机上\)平均需要 136 纳秒。这很好!为了测试，它运行了 10000000 次。
 
-_NOTE_ by default Benchmarks are run sequentially.
+默认情况下基准测试是按顺序运行的。
 
 ## Practice exercises
 
-* Change the test so a caller can specify how many times the character is repeated and then fix the code
-* Write `ExampleRepeat` to document your function
-* Have a look through the [strings](https://golang.org/pkg/strings) package. Find functions you think could be useful and experiment with them by writing tests like we have here. Investing time learning the standard library will really pay off over time.
+* 更改测试，以便调用者可以指定字符重复的次数，然后修复代码
+* 编写 `ExampleRepeat` 来文档化函数
+* 查看 [strings](https://golang.org/pkg/strings) 包。找到您认为可能有用的函数，并通过编写像这里一样的测试来试验它们。随着时间的推移，花时间学习标准库真的会有回报。
 
 ## Wrapping up
 

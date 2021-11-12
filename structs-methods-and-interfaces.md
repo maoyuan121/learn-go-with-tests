@@ -26,7 +26,7 @@ func TestPerimeter(t *testing.T) {
 
 `./shapes_test.go:6:9: undefined: Perimeter`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## 为要运行的测试编写最小数量的代码，并检查失败的测试输出
 
 ```go
 func Perimeter(width float64, height float64) float64 {
@@ -36,8 +36,8 @@ func Perimeter(width float64, height float64) float64 {
 
 Results in `shapes_test.go:10: got 0.00 want 40.00`.
 
-## Write enough code to make it pass
-
+## 编写足够的代码让它通过
+   
 ```go
 func Perimeter(width float64, height float64) float64 {
     return 2 * (width + height)
@@ -46,9 +46,7 @@ func Perimeter(width float64, height float64) float64 {
 
 现在我们创建一个 `Area(width, height float64)` 函数，它将返回矩形的面积。
 
-Try to do it yourself, following the TDD cycle.
-
-You should end up with tests like this
+试着自己去做，遵循 TDD 循环。
 
 ```go
 func TestPerimeter(t *testing.T) {
@@ -70,7 +68,7 @@ func TestArea(t *testing.T) {
 }
 ```
 
-And code like this
+代码如下
 
 ```go
 func Perimeter(width float64, height float64) float64 {
@@ -125,7 +123,7 @@ func TestArea(t *testing.T) {
 }
 ```
 
-Remember to run your tests before attempting to fix, you should get a helpful error like
+记住在尝试修复之前运行测试，您应该会得到一个有用的错误，如
 
 ```text
 ./shapes_test.go:7:18: not enough arguments in call to Perimeter
@@ -133,9 +131,9 @@ Remember to run your tests before attempting to fix, you should get a helpful er
     want (float64, float64)
 ```
 
-You can access the fields of a struct with the syntax of `myStruct.field`.
+你可以使用 `myStruct.field` 的语法来访问结构体的字段。
 
-Change the two functions to fix the test.
+更改这两个函数以修复测试。
 
 ```go
 func Perimeter(rectangle Rectangle) float64 {
@@ -146,7 +144,6 @@ func Area(rectangle Rectangle) float64 {
     return rectangle.Width * rectangle.Height
 }
 ```
-
 
 我希望你会同意，传递一个 `Rectangle` 给函数更清楚地传达了我们的意图，但使用结构体还有更多的好处，我们将继续讨论。
 
@@ -185,13 +182,13 @@ func TestArea(t *testing.T) {
  使用 `g`，我们在错误消息中得到一个完整的十进制数
   \([fmt options](https://golang.org/pkg/fmt/)\).
 
-## Try to run the test
+## 运行测试
 
 `./shapes_test.go:28:13: undefined: Circle`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## 为要运行的测试编写最小数量的代码，并检查失败的测试输出
 
-We need to define our `Circle` type.
+我们需要定义 `Circle` 类型。
 
 ```go
 type Circle struct {
@@ -293,7 +290,7 @@ func (c Circle) Area() float64  {
 
 当你的方法被这种类型的变量调用时，你通过 `receiverName` 变量获得对它数据的引用。在许多其他编程语言中，这是隐式完成的，你通过 `this` 访问接收器。
 
-Go 中的约定是让 receiver 变量是该类型的第一个字母。
+Go 中的约定是让 receiver 变量是该类型的**第一个字母**。
 
 ```go
 r Rectangle
@@ -384,9 +381,9 @@ type Shape interface {
 * `string` 没有这个方法，因此它没有实现 `Shape` 接口
 * etc.
 
-在Go中，接口分辨是隐式的。如果传入的类型与接口所要求的类型匹配，则接口将编译。
+在 Go 中，接口分辨是隐式的。如果传入的类型与接口所要求的类型匹配，则接口将编译。
 
-### Decoupling
+### 解耦
 
 请注意，我们的 helper 并不需要关心形状是 `Rectangle`、 `Circle` 还是 `Triangle`。
 通过声明一个接口，helper 就可以从具体的类型中分离出来，并且只拥有完成工作所需的方法。
@@ -434,11 +431,7 @@ func TestArea(t *testing.T) {
 
 ## Write the test first
 
-Adding a new test for our new shape is very easy. Just add `{Triangle{12, 6}, 36.0},` to our list.
-
 为我们的新形状添加一个新的测试是非常容易的。只需将 `{Triangle{12, 6}, 36.0},` 添加到我们的列表中。
-
-
 
 ```go
 func TestArea(t *testing.T) {
@@ -464,13 +457,13 @@ func TestArea(t *testing.T) {
 
 ## Try to run the test
 
-Remember, keep trying to run the test and let the compiler guide you toward a solution.
+请记住，不断尝试运行测试，并让编译器引导您找到解决方案。
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
 `./shapes_test.go:25:4: undefined: Triangle`
 
-We have not defined Triangle yet
+我们现在还没有定义 Triangle
 
 ```go
 type Triangle struct {
@@ -479,14 +472,14 @@ type Triangle struct {
 }
 ```
 
-Try again
+再次运行
 
 ```text
 ./shapes_test.go:25:8: cannot use Triangle literal (type Triangle) as type Shape in field value:
     Triangle does not implement Shape (missing Area method)
 ```
 
-It's telling us we cannot use a Triangle as a shape because it does not have an `Area()` method, so add an empty implementation to get the test working
+它告诉我们不能使用 Triangle 作为一个 shape，因为它没有 `Area()` 方法，所以添加一个空的实现来让测试工作
 
 ```go
 func (t Triangle) Area() float64 {
@@ -494,7 +487,7 @@ func (t Triangle) Area() float64 {
 }
 ```
 
-Finally the code compiles and we get our error
+最后代码编译通过，我们得到了错误
 
 `shapes_test.go:31: got 0.00 want 36.00`
 
@@ -506,13 +499,13 @@ func (t Triangle) Area() float64 {
 }
 ```
 
-And our tests pass!
+现在我们的测试通过了！
 
 ## Refactor
 
-Again, the implementation is fine but our tests could do with some improvement.
+同样，实现很好，但是我们的测试需要一些改进。
 
-When you scan this
+当你扫描这个的时候
 
 ```go
 {Rectangle{12, 6}, 72.0},
@@ -520,11 +513,11 @@ When you scan this
 {Triangle{12, 6}, 36.0},
 ```
 
-It's not immediately clear what all the numbers represent and you should be aiming for your tests to be easily understood.
+并不能立即明确所有的数字代表什么，你应该让你的测试更容易理解。
 
-So far you've only been shown syntax for creating instances of structs `MyStruct{val1, val2}` but you can optionally name the fields.
+到目前为止，您只展示了创建结构实例 `MyStruct{val1, val2}` 的语法，但您可以选择命名字段。
 
-Let's see what it looks like
+让我们看看它是什么样的
 
 ```go
         {shape: Rectangle{Width: 12, Height: 6}, want: 72.0},
@@ -532,27 +525,29 @@ Let's see what it looks like
         {shape: Triangle{Base: 12, Height: 6}, want: 36.0},
 ```
 
-In [Test-Driven Development by Example](https://g.co/kgs/yCzDLF) Kent Beck refactors some tests to a point and asserts:
+在 [Test-Driven Development by Example](https://g.co/kgs/yCzDLF) 中 Kent Beck 对一些测试进行了重构，并断言:
 
-> The test speaks to us more clearly, as if it were an assertion of truth, **not a sequence of operations**
+> 这个测试对我们讲得更清楚，就好像它是对真理的断言，而不是一系列操作
 
-\(emphasis mine\)
+\(我强调\)
 
-Now our tests \(at least the list of cases\) make assertions of truth about shapes and their areas.
+现在我们的测试(至少是一系列的用例)断言形状和它们的面积是真实的。
 
-## Make sure your test output is helpful
+## 确保您的测试输出是有用的
 
-Remember earlier when we were implementing `Triangle` and we had the failing test? It printed `shapes_test.go:31: got 0.00 want 36.00`.
+还记得之前我们执行 `Triangle` 时遇到的失败测试吗？它打印的 `shapes_test.go:31: got 0.00 want 36.00`.。
 
-We knew this was in relation to `Triangle` because we were just working with it, but what if a bug slipped in to the system in one of 20 cases in the table? How would a developer know which case failed? This is not a great experience for the developer, they will have to manually look through the cases to find out which case actually failed.
+我们知道这与 `Triangle` 有关，因为我们只是在使用它，但如果在表中20个案例中的一个案例中，系统中出现了漏洞怎么办?开发人员如何知道哪个案例失败了?
+这对开发人员来说不是一个很好的体验，他们将不得不手动查看用例，以找出实际失败的用例。
 
-We can change our error message into `%#v got %g want %g`. The `%#v` format string will print out our struct with the values in its field, so the developer can see at a glance the properties that are being tested.
+我们可以将错误消息改为 `%#v got %g want %g`。`%#v` 格式字符串将打印出我们的结构，在它的字段中包含值，因此开发人员可以一眼看到正在测试的属性。
 
-To increase the readability of our test cases further we can rename the `want` field into something more descriptive like `hasArea`.
+为了进一步增加测试用例的可读性，我们可以将 `want` 字段重命名为更具描述性的东西，比如 `hasArea`。
 
-One final tip with table driven tests is to use `t.Run` and to name the test cases.
+关于表驱动测试的最后一个技巧是使用 `t.Run`  并命名测试用例。
 
-By wrapping each case in a `t.Run` you will have clearer test output on failures as it will print the name of the case
+用 `t.Run` 包装每个用例，您将有更清晰的失败测试输出，因为它将打印用例的名称
+
 
 ```text
 --- FAIL: TestArea (0.00s)
@@ -560,9 +555,9 @@ By wrapping each case in a `t.Run` you will have clearer test output on failures
         shapes_test.go:33: main.Rectangle{Width:12, Height:6} got 72.00 want 72.10
 ```
 
-And you can run specific tests within your table with `go test -run TestArea/Rectangle`.
+您还可以使用 `go test -run TestArea/Rectangle` 在表中运行特定的测试。
 
-Here is our final test code which captures this
+这是我们捕获这个的最终测试代码
 
 ```go
 func TestArea(t *testing.T) {
@@ -591,17 +586,18 @@ func TestArea(t *testing.T) {
 }
 ```
 
-## Wrapping up
+## 总结
 
-This was more TDD practice, iterating over our solutions to basic mathematic problems and learning new language features motivated by our tests.
+这是更多的 TDD 实践，迭代我们对基本数学问题的解决方案，并学习由测试激发的新语言特性。
 
-* Declaring structs to create your own data types which lets you bundle related data together and make the intent of your code clearer
-* Declaring interfaces so you can define functions that can be used by different types \([parametric polymorphism](https://en.wikipedia.org/wiki/Parametric_polymorphism)\)
-* Adding methods so you can add functionality to your data types and so you can implement interfaces
-* Table based tests to make your assertions clearer and your suites easier to extend & maintain
+* 声明结构来创建自己的数据类型，这样可以将相关数据捆绑在一起，并使代码的意图更清晰
+* 声明接口以便定义可被不同类型使用的函数\([参数多态性](https://en.wikipedia.org/wiki/Parametric_polymorphism)\)
+* 添加方法，这样你就可以向数据类型添加功能，这样你就可以实现接口
+* 基于表的测试，使您的断言更清晰，您的套件更容易扩展和维护
 
-This was an important chapter because we are now starting to define our own types. In statically typed languages like Go, being able to design your own types is essential for building software that is easy to understand, to piece together and to test.
+这一章很重要，因为我们现在开始定义自己的类型。在像 Go 这样的静态类型语言中，能够设计自己的类型对于构建易于理解、组装和测试的软件至关重要。
 
-Interfaces are a great tool for hiding complexity away from other parts of the system. In our case our test helper _code_ did not need to know the exact shape it was asserting on, only how to "ask" for its area.
+接口是一个很好的工具，可以将复杂性隐藏起来，不让系统的其他部分看到。在我们的例子中，我们的测试助手 _code_ 不需要知道它断言的确切形状，只需要知道如何“ask”它的面积。
 
-As you become more familiar with Go you start to see the real strength of interfaces and the standard library. You'll learn about interfaces defined in the standard library that are used _everywhere_ and by implementing them against your own types you can very quickly re-use a lot of great functionality.
+随着您对 Go 越来越熟悉，您开始看到接口和标准库的真正优势。您将了解在标准库中定义的接口，这些接口在任何地方都可以使用，通过针对您自己的类型实现它们，您可以非常快速地重用许多很棒的功能。
+

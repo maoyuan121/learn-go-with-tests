@@ -88,7 +88,7 @@ func Sum(numbers [5]int) int {
 }
 ```
 
-`range` 允许你遍历数组。每次调用它都会返回两个值，index 和 value。
+`range` 允许你遍历数组。每次调用它都会返回两个值，`index` 和 `value`。
 我们选择使用 `_` [空白标识符](https://golang.org/doc/effective_go.html#blank)来忽略索引值。
 
 ### 数组及其类型
@@ -208,15 +208,8 @@ func TestSum(t *testing.T) {
 如果它对一个大小的切片有效那么它很可能对任何尺寸大小的切片有效
 (在合理范围内)。
 
-Go's built-in testing toolkit features a [coverage
-tool](https://blog.golang.org/cover), which can help identify areas of your code
-you have not covered. I do want to stress that having 100% coverage should not
-be your goal, it's just a tool to give you an idea of your coverage. If you have
-been strict with TDD, it's quite likely you'll have close to 100% coverage
-anyway.
-
 Go 的内置测试工具包具有 [coveragetool](https://blog.golang.org/cover)，
-它可以帮助识别你没有覆盖的代码区域。我想强调的是，100% 的保险覆盖是不应该的成为你的目标，它只是一个工具，让你了解你的覆盖范围。
+它可以帮助识别你没有覆盖的代码区域。我想强调的是，100% 的测试覆盖是不应该的成为你的目标，它只是一个工具，让你了解你的覆盖范围。
 如果你有如果严格使用 TDD，很有可能你将拥有接近 100% 的覆盖率无论如何。
 
 运行
@@ -365,7 +358,7 @@ func SumAll(numbersToSum ...[]int) []int {
 在这个实现中，我们不太担心容量。我们从一个空切片 `Sum` 开始，并在处理变量时将 `Sum` 的结果附加到它后面。
 
 我们的下一个要求是将 `SumAll` 改为 `SumAllTails` 计算每个切片“tails”的总数。集合的尾部是
-除了第一个\(“头”\)以外的所有项目。
+除了第一个\(“头”\)以外的所有 item。
 
 ## Write the test first
 
@@ -405,7 +398,7 @@ func SumAllTails(numbersToSum ...[]int) []int {
 ```
 
 切片可以被 sliced！语法是 `slice[low:high]`，如果你省略了 `:` 一面的值，它抓住了它的一面的一切。
-在我们的在 Case 中，我们用 `numbers[1:]` 表示“从1到最后”。
+在我们的在 Case 中，我们用 `numbers[1:]` 表示“从 1 到最后”。
 你可能想花一些时间编写关于切片的其他测试，并用切片运算符，你们可以熟悉一下。
 
 ## 重构
@@ -528,11 +521,8 @@ $ go test
 除了编写测试之外，另一种方便的使用 Go 的方法是 Go playground。你可以尝试很多东西，你可以很容易地分享你的代码你需要问问题。
 [I have made a go playground with a slice in it for you to experiment with.](https://play.golang.org/p/ICCWcRGIO68)
 
-[Here is an example](https://play.golang.org/p/bTrRmYfNYCp) of slicing an array
-and how changing the slice affects the original array; but a "copy" of the slice
-will not affect the original array.
-[Another example](https://play.golang.org/p/Poth8JS28sc) of why it's a good idea
-to make a copy of a slice after slicing a very large slice.
+[Here is an example](https://play.golang.org/p/bTrRmYfNYCp)是一个对数组进行切片的示例以及改变切片对原始数组的影响;而切片的“拷贝”不会影响原始数组。
+[Another example](https://play.golang.org/p/Poth8JS28sc) 是另一个例子在切下很大的一片后复制一片。
 
 [for]: ../iteration.md#
 [blog-slice]: https://blog.golang.org/go-slices-usage-and-internals
