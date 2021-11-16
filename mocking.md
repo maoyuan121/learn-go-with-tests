@@ -317,7 +317,6 @@ func Countdown(out io.Writer, sleeper Sleeper) {
 
 如果您再次尝试，你的 `main` 将不再编译的原因相同
 
-
 ```
 ./main.go:26:11: not enough arguments in call to Countdown
     have (*os.File)
@@ -507,10 +506,9 @@ type ConfigurableSleeper struct {
     sleep    func(time.Duration)
 }
 ```
-
-We are using `duration` to configure the time slept and `sleep` as a way to pass in a sleep function. 
-The signature of `sleep` is the same as for `time.Sleep` allowing us to use `time.Sleep` in our real implementation and the following spy in our tests:
-
+ 
+我们使用 `duration` 来配置睡眠时间，而 `sleep` 作为一种通过睡眠功能的方式。
+`sleep` 的签名和 `time.Sleep` 一样，允许我们在真正的实施中使用 `time.Sleep`：
 
 ```go
 type SpyTime struct {
@@ -554,7 +552,7 @@ func (c *ConfigurableSleeper) Sleep() {
 }
 ```
 
-With our new `Sleep` function implemented we have a failing test.
+随着我们新的 `Sleep` 功能的实现，我们有一个失败的测试。
 
 ```
 countdown_test.go:56: should have slept for 5s but slept for 0s
@@ -562,7 +560,7 @@ countdown_test.go:56: should have slept for 5s but slept for 0s
 
 ### Write enough code to make it pass
 
-All we need to do now is implement the `Sleep` function for `ConfigurableSleeper`.
+我们现在需要做的就是为 `ConfigurableSleeper` 实现 `Sleep` 函数。
 
 ```go
 func (c *ConfigurableSleeper) Sleep() {
@@ -570,11 +568,13 @@ func (c *ConfigurableSleeper) Sleep() {
 }
 ```
 
-With this change all of the tests should be passing again and you might wonder why all the hassle as the main program didn't change at all. Hopefully it becomes clear after the following section.
+有了这个更改，所有的测试都应该再次通过，您可能想知道为什么会有这么多麻烦，因为主程序根本没有更改。希望在下一节之后能弄清楚。
 
-### Cleanup and refactor
+### 清理和重构
 
 The last thing we need to do is to actually use our `ConfigurableSleeper` in the main function.
+
+我们需要做的最后一件事是在 main 函数中实际使用 `ConfigurableSleeper`。
 
 ```go
 func main() {
@@ -583,79 +583,82 @@ func main() {
 }
 ```
 
-If we run the tests and the program manually, we can see that all the behavior remains the same.
+如果我们手动运行测试和程序，我们可以看到所有的行为保持不变。
 
-Since we are using the `ConfigurableSleeper`, it is now safe to delete the `DefaultSleeper` implementation. Wrapping up our program and having a more [generic](https://stackoverflow.com/questions/19291776/whats-the-difference-between-abstraction-and-generalization) Sleeper with arbitrary long countdowns.
+因为我们使用的是 `ConfigurableSleeper`，所以现在可以安全地删除 `DefaultSleeper` 实现了。
+总结我们的程序，拥有一个更[通用的](https://stackoverflow.com/questions/19291776/whats-the-difference-between-abstraction-and-generalization)带有任意长倒计时的睡眠者。
 
 ## But isn't mocking evil?
 
-You may have heard mocking is evil. Just like anything in software development it can be used for evil, just like [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
+你可能听说过 mocking 是邪恶的。就像软件开发中的任何东西一样，它也可以被用来作恶，就像[DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself)。
 
-People normally get in to a bad state when they don't _listen to their tests_ and are _not respecting the refactoring stage_.
+当人们不听从他们的测试，不尊重重构阶段时，他们通常会陷入一个糟糕的状态。
 
-If your mocking code is becoming complicated or you are having to mock out lots of things to test something, you should _listen_ to that bad feeling and think about your code. Usually it is a sign of
+如果你的代码变得复杂了，或者你不得不 mock 很多东西来测试一些东西，你应该听从这种不好的感觉，思考一下你的代码。通常这是
 
-- The thing you are testing is having to do too many things (because it has too many dependencies to mock)
-  - Break the module apart so it does less
-- Its dependencies are too fine-grained
-  - Think about how you can consolidate some of these dependencies into one meaningful module
-- Your test is too concerned with implementation details
-  - Favour testing expected behaviour rather than the implementation
+- 您正在测试的东西做了太多的事情（因为它有太多的依赖项需要 mock）
+  - 将模块分开，这样做就更少
+- 它的依赖关系太细粒度了（太详细了）
+  - 考虑一下如何将这些依赖项合并到一个有意义的模块中
+- 您的测试过于关注实现细节
+  - 测试预期的行为而不是实现
 
-Normally a lot of mocking points to _bad abstraction_ in your code.
+通常情况下，在你的代码中有很多的 mocking 指向_糟糕的抽象_。
 
-**What people see here is a weakness in TDD but it is actually a strength**, more often than not poor test code is a result of bad design or put more nicely, well-designed code is easy to test.
+人们在这里看到的是 TDD 的一个弱点，但实际上它是一个优点，糟糕的测试代码往往是糟糕设计的结果，或者更巧妙地说，设计良好的代码很容易测试。
 
-### But mocks and tests are still making my life hard!
+### 但是 mock 和测试仍然让我的生活很艰难!
+   
+遇到过这种情况吗？
 
-Ever run into this situation?
+- 你想做一些重构
+- 要做到这一点，你需要改变很多测试
+- 你质疑 TDD，并在 Medium 上发表了一篇题为“Mocking 被认为是有害的”的文章
 
-- You want to do some refactoring
-- To do this you end up changing lots of tests
-- You question TDD and make a post on Medium titled "Mocking considered harmful"
+这通常表明你测试了太多的实现细节。试着让你的测试是测试有用的行为，除非实现对系统如何运行真的很重要。
 
-This is usually a sign of you testing too much _implementation detail_. Try to make it so your tests are testing _useful behaviour_ unless the implementation is really important to how the system runs.
+有时候我们很难知道到底要测试哪个关卡，但以下是我尝试遵循的一些思考过程和规则:
 
-It is sometimes hard to know _what level_ to test exactly but here are some thought processes and rules I try to follow:
+- **重构的定义是:代码改变了，但行为保持不变**。如果您已经决定进行一些重构，那么理论上您应该能够在没有任何测试更改的情况下进行提交。所以在写测试的时候问问自己
+  - 我测试的是我想要的行为，还是实现细节?
+  - 如果我要重构这段代码，我是否必须对测试进行大量更改?
+- 尽管 Go 允许测试私有函数，但我还是会避免使用它，因为私有函数是支持公共行为的实现细节。测试公开的行为。Sandi Metz 将私有函数描述为“不太稳定”，你不想将测试与它们耦合在一起。
+- 我觉得如果一个测试使用了 3 个以上的 mock，那么这就是一个危险信号 —— 是时候重新考虑设计了
+- 小心使用 spy。spy 可以让你看到你正在编写的算法的内部，这可能是非常有用的，但这意味着你的测试代码和实现之间的更紧密耦合。**如果你打算监视这些细节，请确保你真的关心它们**
 
-- **The definition of refactoring is that the code changes but the behaviour stays the same**. If you have decided to do some refactoring in theory you should be able to make the commit without any test changes. So when writing a test ask yourself
-  - Am I testing the behaviour I want, or the implementation details?
-  - If I were to refactor this code, would I have to make lots of changes to the tests?
-- Although Go lets you test private functions, I would avoid it as private functions are implementation detail to support public behaviour. Test the public behaviour. Sandi Metz describes private functions as being "less stable" and you don't want to couple your tests to them.
-- I feel like if a test is working with **more than 3 mocks then it is a red flag** - time for a rethink on the design
-- Use spies with caution. Spies let you see the insides of the algorithm you are writing which can be very useful but that means a tighter coupling between your test code and the implementation. **Be sure you actually care about these details if you're going to spy on them**
+#### 我就不能用一个 mocking 框架吗?
 
-#### Can't I just use a mocking framework?
+Mocking 不需要魔法，也相对简单;使用框架会使 mocking 看起来比实际更复杂。我们在本章中没有使用 automocking，因此我们得到:
 
-Mocking requires no magic and is relatively simple; using a framework can make mocking seem more complicated than it is. We don't use automocking in this chapter so that we get:
+- 更好地理解如何 mock
+- 练习实现接口
 
-- a better understanding of how to mock
-- practise implementing interfaces
+在协作项目中，自动生成 mock 是有价值的。在一个团队中，模拟生成工具会围绕测试的一致性进行编码。这将避免不一致的书面测试双引号，这可能会转化为不一致的书面测试。
 
-In collaborative projects there is value in auto-generating mocks. In a team, a mock generation tool codifies consistency around the test doubles. This will avoid inconsistently written test doubles which can translate to inconsistently written tests.
+You should only use a mock generator that generates test doubles against an interface. 
+Any tool that overly dictates how tests are written, or that use lots of 'magic', can get in the sea.
 
-You should only use a mock generator that generates test doubles against an interface. Any tool that overly dictates how tests are written, or that use lots of 'magic', can get in the sea.
+## 总结
 
-## Wrapping up
+### 更多关于 TDD 方法的信息
 
-### More on TDD approach
+- 当遇到不那么琐碎的例子时，将问题分解成“垂直的薄片”。尽量尽快让你的软件得到测试的支持，避免陷入僵局，采取“big bang”的方法。
+- 一旦你有了一些可以工作的软件，你就可以更容易地进行小步骤的迭代，直到你得到你需要的软件。
 
-- When faced with less trivial examples, break the problem down into "thin vertical slices". Try to get to a point where you have _working software backed by tests_ as soon as you can, to avoid getting in rabbit holes and taking a "big bang" approach.
-- Once you have some working software it should be easier to _iterate with small steps_ until you arrive at the software you need.
-
-> "When to use iterative development? You should use iterative development only on projects that you want to succeed."
+> "什么时候使用迭代开发?您应该只在希望成功的项目上使用迭代开发。"
 
 Martin Fowler.
 
 ### Mocking
 
-- **Without mocking important areas of your code will be untested**. In our case we would not be able to test that our code paused between each print but there are countless other examples. Calling a service that _can_ fail? Wanting to test your system in a particular state? It is very hard to test these scenarios without mocking.
-- Without mocks you may have to set up databases and other third parties things just to test simple business rules. You're likely to have slow tests, resulting in **slow feedback loops**.
-- By having to spin up a database or a webservice to test something you're likely to have **fragile tests** due to the unreliability of such services.
+- **如果没有 mock，你的代码的重要区域将未被测试**在我们的例子中，我们无法测试我们的代码在每次打印之间暂停，但还有无数其他的例子。调用一个不可失败的服务?想要在特定状态下测试系统?要测试这些场景是非常困难的。
+- 如果没有 mock，您可能不得不设置数据库和其他第三方的东西来测试简单的业务规则。你可能会有缓慢的测试，导致“缓慢的反馈循环”。
+- 由于这些服务的不可靠性，必须启动数据库或 web 服务来测试一些东西，你可能会有**脆弱的测试**。
+  
+一旦开发人员学会了 mocking，就很容易对系统的每一个方面都进行过度测试，比如系统的工作方式，而不是系统的功能。
+始终要注意测试的价值以及它们在未来重构中的影响。
 
-Once a developer learns about mocking it becomes very easy to over-test every single facet of a system in terms of the _way it works_ rather than _what it does_. Always be mindful about **the value of your tests** and what impact they would have in future refactoring.
-
-In this post about mocking we have only covered **Spies** which are a kind of mock. The "proper" term for mocks though are "test doubles"
+在这篇关于 mocking 的文章中，我们只涉及了 **Spies**，这是一种 mock。mock 的“恰当”术语是“test doubles”
 
 [> Test Double is a generic term for any case where you replace a production object for testing purposes.](https://martinfowler.com/bliki/TestDouble.html)
 

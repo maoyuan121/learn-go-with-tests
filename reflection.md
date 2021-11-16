@@ -25,16 +25,16 @@ Go 让我们用类型 `interface{}` 来解决这个问题，你可以把它看�
 因此 `walk(x interface{}, fn func(string))` 将接收 `x` 的任何值。
 
 ### 所以为什么不把 `interface` 用于所有的事情，并拥有真正灵活的功能呢?
-
-- As a user of a function that takes `interface` you lose type safety. 
-What if you meant to pass `Foo.bar` of type `string` into a function but instead did `Foo.baz` which is an `int`? 
-The compiler won't be able to inform you of your mistake. 
-You also have no idea _what_ you're allowed to pass to a function.
- Knowing that a function takes a `UserService` for instance is very useful.
-- As a writer of such a function, 
-you have to be able to inspect _anything_ that has been passed to you and try and figure out what the type is and what you can do with it. 
-This is done using _reflection_. 
-This can be quite clumsy and difficult to read and is generally less performant (as you have to do checks at runtime).
+ 
+- 作为一个使用 `interface` 的函数的用户，你会失去类型安全性。
+What if you meant to pass `Foo.bar` of type `string` into a function but instead did `Foo.baz` which is an `int`?  
+编译器不能告诉你你的错误。
+你也不知道你可以传递给函数什么。
+知道一个函数接收一个 `UserService` 是非常有用的。
+- 作为一个这个函数的作者， 
+你必须能够检查传递给你的任何东西，并尝试弄清楚它的类型是什么，以及你可以用它做什么。
+这个可以通过反射做到。 
+这可能非常笨拙，难以阅读，而且通常性能较差(因为您必须在运行时进行检查)。
 
 简而言之，只有在真正需要时才使用反射。
 
@@ -133,7 +133,7 @@ FAIL
 
 ```go
 func walk(x interface{}, fn func(input string)) {
-    val := reflect.ValueOf(x)
+    val := reflect.ValueOf(x)  
     field := val.Field(0)
     fn(field.String())
 }
@@ -222,7 +222,7 @@ func TestWalk(t *testing.T) {
 ```go
 func walk(x interface{}, fn func(input string)) {
     val := reflect.ValueOf(x)
-
+    
     for i:=0; i<val.NumField(); i++ {
         field := val.Field(i)
         fn(field.String())
@@ -232,17 +232,13 @@ func walk(x interface{}, fn func(input string)) {
 
 `val` 有一个方法 `NumField` ，它返回值中的字段数量。这让我们可以遍历字段并调用 `fn`，从而通过我们的测试。
 
-
-
-## Refactor
+## 重构
 
 这里似乎没有任何明显的重构可以改进代码，所以让我们继续。
 
 `walk` 的下一个缺点是它假定每个字段都是一个 `字符串`。让我们为这个场景编写一个测试。
 
-
-
-## Write the test first
+## 先写测试
 
 Add the following case
 
@@ -275,7 +271,7 @@ func walk(x interface{}, fn func(input string)) {
 
     for i := 0; i < val.NumField(); i++ {
         field := val.Field(i)
-
+        
         if field.Kind() == reflect.String {
             fn(field.String())
         }
@@ -285,13 +281,11 @@ func walk(x interface{}, fn func(input string)) {
 
 我们可以通过查看它的[`Kind`](https://godoc.org/reflect#Kind)来做到这一点。
 
-## Refactor
+## 重构
 
 现在看起来代码已经足够合理了。
 
-下一个场景是如果它不是一个“扁平的” `struct`呢?换句话说，如果我们有一个带有嵌套字段的 `struct` 会发生什么?
-
-
+下一个场景是如果它不是一个“扁平的” `struct` 呢?换句话说，如果我们有一个带有嵌套字段的 `struct` 会发生什么?
 
 ## Write the test first
 
@@ -367,7 +361,7 @@ func walk(x interface{}, fn func(input string)) {
         if field.Kind() == reflect.String {
             fn(field.String())
         }
-
+        
         if field.Kind() == reflect.Struct {
             walk(field.Interface(), fn)
         }
@@ -377,7 +371,7 @@ func walk(x interface{}, fn func(input string)) {
 
 解决方案很简单，我们再次检查它的 `Kind`，如果它碰巧是 `struct`，我们只在内部 `struct` 调用 `walk`。
 
-## Refactor
+## 重构
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -448,8 +442,7 @@ func walk(x interface{}, fn func(input string)) {
 
 你不能在指针 `Value` 上使用 `NumField`，我们需要在使用 `Elem()` 之前提取底层值。
 
-
-## Refactor
+## 重构
 
 让我们封装提取从给定的 `interface{}` 提取 `reflect.Value` 的职责，将它封装成一个函数。
 
@@ -512,7 +505,6 @@ panic: reflect: call of reflect.Value.NumField on slice Value [recovered]
 
 这类似于之前的指针场景，我们试图在 `reflect.Value` 上调用 `NumField`。但它没有，因为它不是 struct。
 
-
 ## Write enough code to make it pass
 
 ```go
@@ -539,7 +531,7 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-## Refactor
+## 重构
 
 这个有用，但很恶心。不用担心，我们有测试支持的工作代码，所以我们可以随意修改。
 

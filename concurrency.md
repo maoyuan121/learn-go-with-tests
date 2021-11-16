@@ -99,7 +99,7 @@ func BenchmarkCheckWebsites(b *testing.B) {
 benchmark 测试 `CheckWebsites` 通过使用一个 `WebsiteChecker` 的 fake 实现，来检查 100 个网址。
 `slowStubWebsiteChecker` 通过 Sleep 故意高慢速度，然后直接返回 true。
 
-当我们使用 `go test -bench=.`（or if you're in Windows Powershell `go test -bench="."`）：
+当我们使用 `go test -bench=.`（如果是在 windows powershell 中那么使用 `go test -bench="."`）：
 
 ```sh
 pkg: github.com/gypsydave5/learn-go-with-tests/concurrency/v0
@@ -113,7 +113,7 @@ a quarter seconds.
 
 让我们现在来搞快点。
 
-### 写足够的代码使得测试通过Write enough code to make it pass
+### 写足够的代码使得测试通过
 
 现在我们终于可以讨论并发了，出于 Following 的意思是“有不止一件事情在进行中”。这是我们每天都在自然地做。
 
