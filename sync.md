@@ -9,6 +9,7 @@
 然后，我们将通过多个 goroutine 来重现它的不安全性，尝试通过测试来使用它并修复它。
 
 ## Write the test first
+
 我们希望 API 给我们一个方法来增加计数器，然后检索它的值。
 
 ```go
@@ -149,7 +150,6 @@ t.Run("it runs safely concurrently", func(t *testing.T) {
 然后每个 goroutine 运行并在完成时调用Done。
 同时，可以使用 Wait 来阻塞，直到所有 goroutin e完成。
 
-By waiting for `wg.Wait()` to finish before making our assertions we can be sure all of our goroutines have attempted to `Inc` the `Counter`.
 在执行断言之前等待 `wg.Wait()` 完成，我们可以确保所有 goroutine 都试图 `Inc` 这个 `Counter`。
 
 ## Try to run the test
@@ -168,7 +168,7 @@ FAIL
 
 一个简单的解决方案是给我们的 `Counter`添加一个锁，一个 [`Mutex`](https://golang.org/pkg/sync/#Mutex)
 
->Mutex 是一种互斥锁。互斥锁的零值是一个未锁定的互斥锁。
+> Mutex 是一种互斥锁。互斥锁的零值是一个未锁定的互斥锁。
 
 ```go
 type Counter struct {
@@ -210,14 +210,11 @@ func (c *Counter) Inc() {
 
 这看起来不错，但编程是一个非常主观的学科，这是糟糕的和错误的。
 
-
 有时人们忘记了嵌入类型意味着该类型的方法成为公共接口的一部分;你通常不会想要那样。
 记住，我们应该非常小心我们的公共 api，当我们让一些东西成为公共的时候，其他代码就可以把自己和它结合起来。我们总是希望避免不必要的耦合。
 
-
 显示“锁定”和“解锁”最好的情况是令人困惑，但在最坏的情况下，如果您的类型的调用者开始调用这些方法，则可能对您的软件非常有害。
 暴露 `Lock` 和 `Unlock` 最好的情况是令人困惑，但在最坏的情况下，如果您的类型的调用者开始调用这些方法，则可能对您的软件非常有害。
-
 
 ![Showing how a user of this API can wrongly change the state of the lock](https://i.imgur.com/SWYNpwm.png)
 
@@ -236,7 +233,7 @@ sync/v2/sync_test.go:39: assertCounter passes lock by value: v1.Counter contains
 
 查看 [`sync.Mutex`](https://golang.org/pkg/sync/#Mutex) 文档
 
-> A Mutex must not be copied after first use.
+> Mutex 互斥锁在第一次使用后不能被复制。
 
 当我们传递 `Counter` (by value) 给 `assertCounter`, 它将试着创建一个 mutex 的副本.
 
@@ -261,8 +258,6 @@ func NewCounter() *Counter {
 
 我们已经介绍了 [sync package](https://golang.org/pkg/sync/) 中的一些内容
 
-
-
 - `Mutex` 能让我们给我们的数据添加锁
 - `Waitgroup` 表示等待 goroutine 完成
 
@@ -272,7 +267,7 @@ func NewCounter() *Counter {
 [The go wiki has a page dedicated to this topic; Mutex Or Channel](https://github.com/golang/go/wiki/MutexOrChannel)
 
 > 一个常见的 Go 新手错误是过度使用 channel 和 goroutine，仅仅因为它是可能的，或者因为它很有趣。
-不要害怕使用 sync.Mutext，如果它最适合你的问题。
+不要害怕使用 sync.Mutex，如果它最适合你的问题。
 Go 是实用的，它让你使用最能解决问题的工具，而不是强迫你使用一种代码风格。
 
 Paraphrasing:

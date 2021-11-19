@@ -2,25 +2,25 @@
 
 **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/roman-numerals)**
 
-Some companies will ask you to do the [Roman Numeral Kata](http://codingdojo.org/kata/RomanNumerals/) as part of the interview process. This chapter will show how you can tackle it with TDD.
+一些公司会要求你做[罗马数字 Kata](http://codingdojo.org/kata/RomanNumerals/) 作为面试过程的一部分。本章将展示如何使用 TDD 来解决这个问题。
 
-We are going to write a function which converts an [Arabic number](https://en.wikipedia.org/wiki/Arabic_numerals) (numbers 0 to 9) to a Roman Numeral.
+我们将编写一个函数，它将[阿拉伯数字](https://en.wikipedia.org/wiki/Arabic_numerals)(数字 0 到 9)转换为罗马数字。
 
-If you haven't heard of [Roman Numerals](https://en.wikipedia.org/wiki/Roman_numerals) they are how the Romans wrote down numbers.
+如果你没有听说过[罗马数字](https://en.wikipedia.org/wiki/Roman_numerals)，他们是罗马人记录数字的方式。
 
-You build them by sticking symbols together and those symbols represent numbers
+你把符号粘在一起，这些符号代表数字
 
-So `I` is "one". `III` is three.
+`I` 代表一， `III` 代表三。
 
-Seems easy but there's a few interesting rules. `V` means five, but `IV` is 4 (not `IIII`).
+看起来很简单，但有一些有趣的规则。`V` 表示五，但 `IV` 是 4(不是 `IIII`)。
 
-`MCMLXXXIV` is 1984. That looks complicated and it's hard to imagine how we can write code to figure this out right from the start.
+`MCMLXXXIV`是 1984。这看起来很复杂，很难想象我们如何从一开始就编写代码来解决这个问题。
 
-As this book stresses, a key skill for software developers is to try and identify "thin vertical slices" of _useful_ functionality and then **iterating**. The TDD workflow helps facilitate iterative development.
+正如本书所强调的，软件开发人员的一项关键技能是尝试并识别有用功能的“垂直薄片”，然后**迭代**。TDD 工作流有助于促进迭代开发。
 
-So rather than 1984, let's start with 1.
+我们从 1 开始，而不是 1984。
 
-## Write the test first
+## 先写测试
 
 ```go
 func TestRomanNumerals(t *testing.T) {
@@ -33,17 +33,17 @@ func TestRomanNumerals(t *testing.T) {
 }
 ```
 
-If you've got this far in the book this is hopefully feeling very boring and routine to you. That's a good thing.
+如果你们已经读到这里了，希望你们会觉得这很无聊，很老套。这是一件好事。
 
-## Try to run the test
+## 运行测试
 
 `./numeral_test.go:6:9: undefined: ConvertToRoman`
 
-Let the compiler guide the way
+让编译器来指导
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## 为要运行的测试编写最小数量的代码，并检查失败的测试输出
 
-Create our function but don't make the test pass yet, always make sure the tests fails how you expect
+创建我们的函数，但不要让测试通过，总是要确保测试以预期的方式失败
 
 ```go
 func ConvertToRoman(arabic int) string {
@@ -51,7 +51,7 @@ func ConvertToRoman(arabic int) string {
 }
 ```
 
-It should run now
+现在运行
 
 ```go
 === RUN   TestRomanNumerals
@@ -60,7 +60,7 @@ It should run now
 FAIL
 ```
 
-## Write enough code to make it pass
+## 编写足够的代码使其通过
 
 ```go
 func ConvertToRoman(arabic int) string {
@@ -68,17 +68,17 @@ func ConvertToRoman(arabic int) string {
 }
 ```
 
-## Refactor
+## 重构
 
-Not much to refactor yet.
+还没有太多需要重构的地方。
 
-_I know_ it feels weird just to hard-code the result but with TDD we want to stay out of "red" for as long as possible. It may _feel_ like we haven't accomplished much but we've defined our API and got a test capturing one of our rules; even if the "real" code is pretty dumb.
+我知道，硬编码结果感觉很奇怪，但对于 TDD，我们希望尽可能远离“红色”。它可能感觉我们没有完成多少，但我们已经定义了我们的 API，并进行了一个测试捕捉我们的一个规则;即使“真正的”代码非常愚蠢。
 
-Now use that uneasy feeling to write a new test to force us to write slightly less dumb code.
+现在用这种不安的感觉来编写一个新的测试，迫使我们编写稍微不那么愚蠢的代码。
 
 ## Write the test first
 
-We can use subtests to nicely group our tests
+我们可以使用子测试来很好地分组测试
 
 ```go
 func TestRomanNumerals(t *testing.T) {
@@ -123,11 +123,11 @@ func ConvertToRoman(arabic int) string {
 }
 ```
 
-Yup, it still feels like we're not actually tackling the problem. So we need to write more tests to drive us forward.
+是的，感觉我们并没有真正解决这个问题。因此，我们需要编写更多的测试来推动我们前进。
 
 ## Refactor
 
-We have some repetition in our tests. When you're testing something which feels like it's a matter of "given input X, we expect Y" you should probably use table based tests.
+我们的测试中有一些重复的内容。当你在测试一些东西时，感觉它是“给定输入X，我们期望Y”的问题，你可能应该使用基于表格的测试。
 
 ```go
 func TestRomanNumerals(t *testing.T) {
@@ -151,13 +151,13 @@ func TestRomanNumerals(t *testing.T) {
 }
 ```
 
-We can now easily add more cases without having to write any more test boilerplate.
+我们现在可以轻松地添加更多的用例，而不必编写更多的测试样板。
 
-Let's push on and go for 3
+让我们添加 3 这个用例
 
 ## Write the test first
 
-Add the following to our cases
+添加下面的用例
 
 ```go
 {"3 gets converted to III", 3, "III"},
@@ -187,11 +187,12 @@ func ConvertToRoman(arabic int) string {
 
 ## Refactor
 
-OK so I'm starting to not enjoy these if statements and if you look at the code hard enough you can see that we're building a string of `I` based on the size of `arabic`.
+好的，我开始不喜欢这些 if 语句了，如果你仔细看代码，你会发现我们建立了一个基于 `arabic` 大小的 `I` 字符串。
 
-We "know" that for more complicated numbers we will be doing some kind of arithmetic and string concatenation.
+我们“知道”对于更复杂的数字，我们将进行某种算术和字符串连接。
 
-Let's try a refactor with these thoughts in mind, it _might not_ be suitable for the end solution but that's OK. We can always throw our code away and start afresh with the tests we have to guide us.
+让我们带着这些想法来尝试重构，它可能不适合最终的解决方案，但这是可以的。我们总是可以扔掉我们的代码，用我们必须指导的测试重新开始。
+
 
 ```go
 func ConvertToRoman(arabic int) string {
@@ -206,23 +207,21 @@ func ConvertToRoman(arabic int) string {
 }
 ```
 
-You may not have used [`strings.Builder`](https://golang.org/pkg/strings/#Builder) before
+可能你之前没有使用过 [`strings.Builder`](https://golang.org/pkg/strings/#Builder)
 
-> A Builder is used to efficiently build a string using Write methods. It minimizes memory copying.
+> Builder 用于使用 Write 方法高效地构建字符串。它最小化了内存复制。
 
-Normally I wouldn't bother with such optimisations until I have an actual performance problem but the amount of code is not much larger than a "manual" appending on a string so we may as well use the faster approach.
+通常情况下，除非我遇到实际的性能问题，否则我不会为这种优化而烦恼，但代码量并不比“手动”追加字符串大多少，所以我们不妨使用更快的方法。
 
-The code looks better to me and describes the domain _as we know it right now_.
+代码对我来说更好看，并且描述了我们现在所知道的领域。
 
 ### The Romans were into DRY too...
 
-Things start getting more complicated now. The Romans in their wisdom thought repeating characters would become hard to read and count. So a rule with Roman Numerals is you can't have the same character repeated more than 3 times in a row.
+事情开始变得更复杂了。聪明的罗马人认为重复的字符会变得难以阅读和计算。所以罗马数字的一个规则是，同一个字符不能连续重复超过 3 次。
 
-Instead you take the next highest symbol and then "subtract" by putting a symbol to the left of it. Not all symbols can be used as subtractors; only I (1), X (10) and C (100).
+相反，你取下一个最高的符号，然后“subtract”，把一个符号放在它的左边。不是所有的符号都可以作为减法;只有I (1)， X(10)和C (100)
 
-
-
-For example `5` in Roman Numerals is `V`. To create 4 you do not do `IIII`, instead you do `IV`.
+例如，`5` 在罗马数字中是 `V`。要创造 4，你不需要做 `IIII`，而是要做 `IV`。
 
 ## Write the test first
 
@@ -259,7 +258,7 @@ func ConvertToRoman(arabic int) string {
 
 ## Refactor
 
-I don't "like" that we have broken our string building pattern and I want to carry on with it.
+我不“喜欢”我们打破了我们的 string building  模式，我想继续它。
 
 ```go
 func ConvertToRoman(arabic int) string {
@@ -277,8 +276,7 @@ func ConvertToRoman(arabic int) string {
 	return result.String()
 }
 ```
-
-In order for 4 to "fit" with my current thinking I now count down from the Arabic number, adding symbols to our string as we progress. Not sure if this will work in the long run but let's see!
+为了让4“适合”我现在的想法，我现在从阿拉伯数字倒数，在我们前进的时候添加符号到我们的字符串。不确定从长远来看这是否有效，但让我们看看!
 
 Let's make 5 work
 
@@ -298,7 +296,7 @@ Let's make 5 work
 
 ## Write enough code to make it pass
 
-Just copy the approach we did for 4
+复制 4 的方法
 
 ```go
 func ConvertToRoman(arabic int) string {
@@ -323,9 +321,9 @@ func ConvertToRoman(arabic int) string {
 
 ## Refactor
 
-Repetition in loops like this are usually a sign of an abstraction waiting to be called out. Short-circuiting loops can be an effective tool for readability but it could also be telling you something else.
+像这样的循环中的重复通常是一个抽象等待调用的标志。短路循环是一种有效的可读性工具，但它也可以告诉你一些其他的东西。
 
-We are looping over our Arabic number and if we hit certain symbols we are calling `break` but what we are _really_ doing is subtracting over `i` in a ham-fisted manner.
+我们在循环我们的阿拉伯数字，如果我们击中特定的符号，我们调用 `break`，但我们真正做的是用笨拙的方式减去 `i`。
 
 ```go
 func ConvertToRoman(arabic int) string {
@@ -383,11 +381,11 @@ case arabic > 8:
 
 ## Refactor
 
-It _feels_ like the code is still telling us there's a refactor somewhere but it's not totally obvious to me, so let's keep going.
+感觉代码仍然在告诉我们某个地方需要重构，但对我来说不是很明显，所以让我们继续。
 
-I'll skip the code for this too, but add to your test cases a test for `10` which should be `X` and make it pass before reading on.
+我将跳过这部分的代码，但在您的测试用例中添加一个 `10` 的测试，它应该是 `X`，并在阅读之前让它通过。
 
-Here are a few tests I added as I'm confident up to 39 our code should work
+下面是我添加的一些测试，因为我确信到39，我们的代码应该可以工作
 
 ```go
 {"10 gets converted to X", 10, "X"},
@@ -434,11 +432,12 @@ func ConvertToRoman(arabic int) string {
 }
 ```
 
-This feels much better. We've declared some rules around the numerals as data rather than hidden in an algorithm and we can see how we just work through the Arabic number, trying to add symbols to our result if they fit.
+这个感觉好多了。我们声明了一些关于数字的规则作为数据，而不是隐藏在算法中，我们可以看到我们是如何处理阿拉伯数字的，尝试在我们的结果中添加符号，如果它们符合。
 
-Does this abstraction work for bigger numbers? Extend the test suite so it works for the Roman number for 50 which is `L`.
+这种抽象是否适用于更大的数字?扩展测试套件，使其能够适用于罗马数字 50，即 `L`。
 
-Here are some test cases, try and make them pass.
+这里有一些测试用例，试着让它们通过。
+
 
 ```go
 {"40 gets converted to XL", 40, "XL"},
@@ -447,8 +446,7 @@ Here are some test cases, try and make them pass.
 {"50 gets converted to L", 50, "L"},
 ```
 
-Need help? You can see what symbols to add in [this gist](https://gist.github.com/pamelafox/6c7b948213ba55332d86efd0f0b037de).
-
+需要帮忙吗?您可以看到要添加哪些符号，从这[this gist](https://gist.github.com/pamelafox/6c7b948213ba55332d86efd0f0b037de).
 
 ## And the rest!
 
@@ -460,11 +458,11 @@ Here are the remaining symbols
 | 500 | D      |
 | 1000 | M      |
 
-Take the same approach for the remaining symbols, it should just be a matter of adding data to both the tests and our array of symbols.
+对其余的符号采用相同的方法，它应该只是向测试和符号数组中添加数据的问题。
 
-Does your code work for `1984`: `MCMLXXXIV` ?
+你的代码能算出 `1984` 是 `MCMLXXXIV` 吗？
 
-Here is my final test suite
+下面是最终的测试套件
 
 ```go
 func TestRomanNumerals(t *testing.T) {
@@ -513,10 +511,10 @@ func TestRomanNumerals(t *testing.T) {
 }
 ```
 
-- I removed `description` as I felt the _data_ described enough of the information.
-- I added a few other edge cases I found just to give me a little more confidence. With table based tests this is very cheap to do.
+- 我删除了 description ，因为我觉得 _data_ 描述了足够多的信息。
+- 我添加了一些我发现的其他边缘情况，只是为了让我更有信心。使用基于表的测试，这是非常便宜的。
 
-I didn't change the algorithm, all I had to do was update the `allRomanNumerals` array.
+我没有改变算法，我只需要更新 `allRomanNumerals` 数组。
 
 ```go
 var allRomanNumerals = []RomanNumeral{
@@ -538,14 +536,13 @@ var allRomanNumerals = []RomanNumeral{
 
 ## Parsing Roman Numerals
 
-We're not done yet. Next we're going to write a function that converts _from_ a Roman Numeral to an `int`
-
+我们还没做完。接下来我们要写一个函数将罗马数字转换位 `int`
 
 ## Write the test first
 
-We can re-use our test cases here with a little refactoring
+我们可以通过一些重构来重用我们的测试用例
 
-Move the `cases` variable outside of the test as a package variable in a `var` block.
+将 `cases` 变量作为 `var` 块中的包变量移动到测试之外。
 
 ```go
 func TestConvertingToArabic(t *testing.T) {
@@ -560,7 +557,7 @@ func TestConvertingToArabic(t *testing.T) {
 }
 ```
 
-Notice I am using the slice functionality to just run one of the tests for now (`cases[:1]`) as trying to make all of those tests pass all at once is too big a leap
+注意，我现在使用切片功能只是运行其中一个测试( `cases[:1]`)，因为试图让所有这些测试一次性通过太大了
 
 ## Try to run the test
 
@@ -570,7 +567,7 @@ Notice I am using the slice functionality to just run one of the tests for now (
 
 ## Write the minimal amount of code for the test to run and check the failing test output
 
-Add our new function definition
+定义新函数
 
 ```go
 func ConvertToArabic(roman string) int {
@@ -578,7 +575,7 @@ func ConvertToArabic(roman string) int {
 }
 ```
 
-The test should now run and fail
+现在运行测试应该失败
 
 ```
 --- FAIL: TestConvertingToArabic (0.00s)
@@ -596,7 +593,7 @@ func ConvertToArabic(roman string) int {
 }
 ```
 
-Next, change the slice index in our test to move to the next test case (e.g. `cases[:2]`). Make it pass yourself with the dumbest code you can think of, continue writing dumb code (best book ever right?) for the third case too. Here's my dumb code.
+接下来，在我们的测试中更改切片索引以移动到下一个测试用例(例如。“情况下[:2]”)。让它通过你能想到的最愚蠢的代码，继续为第三种情况编写愚蠢的代码(最好的书，对吗?)这是我愚蠢的代码。
 
 ```go
 func ConvertToArabic(roman string) int {
@@ -610,7 +607,7 @@ func ConvertToArabic(roman string) int {
 }
 ```
 
-Through the dumbness of _real code that works_ we can start to see a pattern like before. We need to iterate through the input and build _something_, in this case a total.
+通过工作的代码的沉默，我们可以开始看到一个像以前一样的模式。我们需要遍历输入并构建 _something_，在本例中为 total。
 
 ```go
 func ConvertToArabic(roman string) int {
@@ -624,7 +621,7 @@ func ConvertToArabic(roman string) int {
 
 ## Write the test first
 
-Next we move to `cases[:4]` (`IV`) which now fails because it gets 2 back as that's the length of the string.
+接下来我们移动到 `cases[:4]` (`IV`)，它现在失败了，因为它返回了 2，因为这是字符串的长度。
 
 ## Write enough code to make it pass
 

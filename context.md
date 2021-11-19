@@ -3,7 +3,7 @@
 **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/context)**
 
 
-软件经常启动长时间运行的、资源密集型的进程(通常是goroutines)。
+软件经常启动长时间运行的、资源密集型的进程(通常是 goroutines)。
 如果导致此操作的操作因某种原因被取消或失败，则需要在应用程序中以一致的方式停止这些进程。
 
 如果您不管理这一点，您引以为傲的时髦 Go 应用程序可能会开始难以调试性能问题。
@@ -11,7 +11,6 @@
 在本章中，我们将使用包 `context` 来帮助我们管理长时间运行的 process。
 
 我们将从一个经典的 web 服务器的例子开始，当点击时，启动一个潜在的长时间运行的进程来获取一些数据，让它在响应中返回。
-
 
 我们将演练一个场景，其中用户在可以检索数据之前取消请求，我们将确保流程被告知放弃。
 
@@ -74,9 +73,8 @@ type Store interface {
 }
 ```
 
-我们将需要调整我们的间谍，以便它需要一些时间返回 `data` 和一种知道它已被告知取消的方式。我们还将把它重命名为 `SpyStore`，
+我们将需要调整我们的 spy，以便它需要一些时间返回 `data` 和一种知道它已被告知取消的方式。我们还将把它重命名为 `SpyStore`，
 因为我们现在正在观察它的叫法。它必须添加 `Cancel` 作为一个方法来实现 `Store` 接口。
-
 
 ```go
 type SpyStore struct {
@@ -214,8 +212,7 @@ func Server(store Store) http.HandlerFunc {
 
 ## Refactor
 
-我们可以通过在间谍上创建断言方法来重构测试代码
-
+我们可以通过在 spy 上创建断言方法来重构测试代码
 
 ```go
 type SpyStore struct {
@@ -290,7 +287,6 @@ func TestServer(t *testing.T) {
 
 [From the go doc](https://golang.org/pkg/context/)
 
-
 > 向服务器发出的传入请求应该创建一个 Context，而向服务器发出的调用应该接受一个 Context。
 它们之间的函数调用链必须传播上下文，可以选择用派生上下文替换它，派生上下文使用 WithCancel、WithDeadline、WithTimeout 或 WithValue 创建。
 当取消上下文时，从它派生的所有上下文也将被取消。
@@ -304,7 +300,6 @@ From the [Go Blog: Context](https://blog.golang.org/context) again:
 (Pause for a moment and think of the ramifications of every function having to send in a context, and the ergonomics of that.)
 
 感觉有点不舒服?好。让我们尝试着遵循这种方法，而不是通过 `context` 传递给我们的 `Store`，让它负责任。通过这种方式，它也可以将 `context` 传递给它的依赖者，它们也可以负责停止自己。
-
 
 ## Write the test first
 
@@ -367,7 +362,7 @@ func (s *SpyStore) Fetch(ctx context.Context) (string, error) {
 
 我们正在模拟一个缓慢的过程，通过在 goroutine 中一个字符一个字符地添加字符串来缓慢地构建结果。
 当 goroutine 完成它的工作时，它将字符串写入 `data` 通道。
-goroutine监听 `ctx.Done`，并在该通道中发送信号时停止工作。
+goroutine 监听 `ctx.Done`，并在该通道中发送信号时停止工作。
 
 最后，代码使用另一个 `select` 来等待 goroutine 完成它的工作或取消发生。
 
@@ -419,8 +414,7 @@ func Server(store Store) http.HandlerFunc {
 ## Write the test first
 
 我们需要测试我们没有对错误情况编写任何类型的响应。
-不幸的是 `httptest.ResponseRecorder` 没有办法解决这个问题，所以我们必须扮演我们自己的间谍来测试。
-
+不幸的是 `httptest.ResponseRecorder` 没有办法解决这个问题，所以我们必须扮演我们自己的 spy 来测试。
 
 ```go
 type SpyResponseWriter struct {
@@ -528,8 +522,6 @@ func Server(store Store) http.HandlerFunc {
 [Jack Lindamood 说 **Context.Value 应该通知，而不是控制**](https://medium.com/@cep21/how-to-correctly-use-context-context-in-go-1-7-8f2c0fafdf39)
 
 > context.Value 是针对维护者而不是用户。它永远不应该被要求输入文件或预期的结果。
-
-
 
 ### Additional material
 
